@@ -2,6 +2,8 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import envConfig from "./app/envConfig";
 import cookieParser from "cookie-parser";
+import { notFoundRoute } from "./app/middleWares/notFoundRoute";
+import { globalErrorHandaler } from "./app/middleWares/globalErrorHandaler";
 
 const app: Application = express();
 
@@ -22,5 +24,8 @@ app.get("/", async (req: Request, res: Response) => {
     message: "Welcome to Blood for life",
   });
 });
+
+app.use(notFoundRoute)
+app.use(globalErrorHandaler)
 
 export default app;
