@@ -9,23 +9,23 @@ const app: Application = express();
 
 app.use(express.json());
 app.use(
-  cors({
-    origin: envConfig.frontend_url,
-    credentials: true,
-  }),
+	cors({
+		origin: envConfig.frontend_url,
+		credentials: true,
+	}),
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // ========Test route======
 app.get("/", async (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: "Welcome to Blood for life",
-  });
+	res.status(200).json({
+		success: true,
+		message: "Welcome to Blood for life",
+	});
 });
 
-app.use(notFoundRoute)
-app.use(globalErrorHandaler)
+app.use(notFoundRoute);
+app.use(globalErrorHandaler);
 
 export default app;
