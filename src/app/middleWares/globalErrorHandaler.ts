@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { Prisma } from "../../generated/prisma/client";
+import { AppError } from "../utils/appErro";
 
 export const globalErrorHandaler = async(err: any, req: Request, res:Response, next: NextFunction)=>{
 
 
     // -----initial error res data
-    let statusCode = null
+    let statusCode: number = httpStatus.INTERNAL_SERVER_ERROR
     let errMessage = err.message
     let errorName = err.name || "Internal server error"
 
-    
+
 
     // -----err set for prisma error
     if(err instanceof Prisma.PrismaClientValidationError){
@@ -33,13 +34,18 @@ export const globalErrorHandaler = async(err: any, req: Request, res:Response, n
     }else if(err instanceof Prisma.PrismaClientUnknownRequestError){
         statusCode = httpStatus.INTERNAL_SERVER_ERROR
         errMessage = "Error occures during query exicution"
+    }else if(err instanceof AppError){
+        statusCode = err.statusCode
+        errMessage = err.message
+    }else if(err instanceof Error){
+        errMessage = err.message
     }
 
 
     // ------final err response send to client
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+    res.status(statusCode).json({
         success: false,
-        statusCode: statusCode || httpStatus.INTERNAL_SERVER_ERROR,
+        statusCode: statusCode,
         name: errorName,
         message: errMessage,
         error: err.stack
