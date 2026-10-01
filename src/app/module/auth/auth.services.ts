@@ -1,47 +1,17 @@
-import { isValidateEmail, isValidatePassword } from "../../utils/helpers";
 import { ISignup, ISignupErrors } from "./auth.interface";
-import { BloodGroupList } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
+import bcrypt from "bcrypt";
+import envConfig from "../../envConfig";
+import crypto from "crypto";
+import { redisClient } from "../../lib/redis";
+import { mailSender } from "../../utils/mailService";
+import { OTPMailTemp } from "../../emailTemplates/OtpMailTemp";
 
 // ---------signup services
 const signupServices = async (payload: ISignup) => {
 	const { name, email, bloodGroup, password } = payload;
-
-	// ----get a empty obj for all validation errors togather
-	const errors: ISignupErrors = {};
-
-	// ---name validatine
-	if (!name) {
-		errors.name = "Name is required";
-	}
-
-	// ---email validatine
-	if (!email) {
-		errors.email = "Email is required";
-	} else if (!isValidateEmail(email)) {
-		errors.email = "Email not valid";
-	}
-
-	// ---password validatine
-	if (!password) {
-		errors.password = "Password is required";
-	} else if (!isValidatePassword(password)) {
-		errors.password = "Password not valid";
-	}
-
-	// ---blood group validation
-	if (!bloodGroup) {
-		errors.bloodGroup = "Blood Group is required";
-	} else if (!Object.values(BloodGroupList).includes(bloodGroup)) {
-		errors.bloodGroup = "Invalid blood group";
-	}
-
-	// --------sending errors
-	if (Object.keys(errors).length > 0) {
-		return { errors: errors };
-	}
 
 	// -----checking if user already exist with same email
 	const userExist = await prisma.user.findUnique({
@@ -56,6 +26,53 @@ const signupServices = async (payload: ISignup) => {
 			"User already exist with this email",
 		);
 	}
+
+	// -----password hash
+	const hashedPassword = await bcrypt.hash(
+		password,
+		Number(envConfig.SALT_ROUNDS),
+	);
+
+	// -----otp generate
+	const otp = crypto.randomInt(100000, 1000000).toString();
+
+	// -----redis data set
+	const expirationSecound = 5 * 60;
+	const otpKey = `user-registration-otp:${email}`;
+
+	// ---otp set on redis
+	await redisClient.set(otpKey, otp, {
+		expiration: {
+			type: "EX",
+			value: expirationSecound,
+		},
+	});
+
+	// ---sugnup data set on redis
+	const signupDataKey = `user-signup-data:${email}`;
+
+	const userDataPayload = JSON.stringify({
+		name,
+		email,
+		password: hashedPassword,
+		bloodGroup,
+	});
+
+	await redisClient.set(signupDataKey, userDataPayload, {
+		expiration: {
+			type: "EX",
+			value: expirationSecound,
+		},
+	});
+
+	// ------sending mail
+	await mailSender({
+		email,
+		subject: "verify your email",
+		mailTemp: OTPMailTemp(otp, 5),
+	});
+
+	return;
 };
 
 export const authServices = { signupServices };
