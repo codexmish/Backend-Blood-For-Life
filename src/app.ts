@@ -4,6 +4,7 @@ import envConfig from "./app/envConfig";
 import cookieParser from "cookie-parser";
 import { notFoundRoute } from "./app/middleWares/notFoundRoute";
 import { globalErrorHandaler } from "./app/middleWares/globalErrorHandaler";
+import { authRouter } from "./app/module/auth/auth.router";
 
 const app: Application = express();
 
@@ -24,6 +25,11 @@ app.get("/", async (req: Request, res: Response) => {
 		message: "Welcome to Blood for life",
 	});
 });
+
+
+
+// =======router
+app.use(`${envConfig.BASE_URL}/auth`, authRouter)
 
 app.use(notFoundRoute);
 app.use(globalErrorHandaler);
