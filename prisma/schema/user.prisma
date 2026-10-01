@@ -3,6 +3,7 @@ model User {
   name               String
   email              String
   password           String?
+  bloodGroup         BloodGroupList
   emailVerified      Boolean      @default(false)
   role               Role         @default(USER)
   status             UserStatus   @default(ACTIVE)
