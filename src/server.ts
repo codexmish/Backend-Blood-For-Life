@@ -10,9 +10,8 @@ const main = async () => {
 		await prisma.$connect();
 		console.log("Connected to the database successfully.");
 
-		await redisClient.connect()
+		await redisClient.connect();
 		console.log("redis connected");
-		
 
 		app.listen(port, () => {
 			console.log(`server running on port ${port}`);

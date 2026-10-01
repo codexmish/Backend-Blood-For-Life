@@ -1,70 +1,78 @@
-import { ISignup, ISignupErrors } from "./auth.interface"
+import { ISignup, ISignupErrors } from "./auth.interface";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 import envConfig from "../../envConfig";
-import crypto from "crypto"
+import crypto from "crypto";
 import { redisClient } from "../../lib/redis";
-
+import { mailSender } from "../../utils/mailService";
+import { OTPMailTemp } from "../../emailTemplates/OtpMailTemp";
 
 // ---------signup services
-const signupServices = async(payload: ISignup)=>{
-    const {name, email, bloodGroup, password} = payload
+const signupServices = async (payload: ISignup) => {
+	const { name, email, bloodGroup, password } = payload;
 
+	// -----checking if user already exist with same email
+	const userExist = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
 
-    // -----checking if user already exist with same email
-    const userExist = await prisma.user.findUnique({
-        where:{
-            email
-        }
-    })
+	if (userExist) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"User already exist with this email",
+		);
+	}
 
-    if(userExist){
-        throw new AppError(httpStatus.BAD_REQUEST, "User already exist with this email")
-    }
+	// -----password hash
+	const hashedPassword = await bcrypt.hash(
+		password,
+		Number(envConfig.SALT_ROUNDS),
+	);
 
-    // -----password hash
-    const hashedPassword = await bcrypt.hash(password, Number(envConfig.SALT_ROUNDS))
+	// -----otp generate
+	const otp = crypto.randomInt(100000, 1000000).toString();
 
-    // -----otp generate
-    const otp =  crypto.randomInt(100000, 1000000).toString();
+	// -----redis data set
+	const expirationSecound = 5 * 60;
+	const otpKey = `user-registration-otp:${email}`;
 
-    // -----redis data set
-    const expirationSecound = 5 * 60;
-    const otpKey = `user-registration-otp:${email}`
+	// ---otp set on redis
+	await redisClient.set(otpKey, otp, {
+		expiration: {
+			type: "EX",
+			value: expirationSecound,
+		},
+	});
 
-    // ---otp set on redis
-    await redisClient.set(otpKey, otp,{
-        expiration:{
-            type: "EX",
-            value: expirationSecound
-        }
-    })
+	// ---sugnup data set on redis
+	const signupDataKey = `user-signup-data:${email}`;
 
+	const userDataPayload = JSON.stringify({
+		name,
+		email,
+		password: hashedPassword,
+		bloodGroup,
+	});
 
-    // ---sugnup data set on redis
-    const signupDataKey = `user-signup-data:${email}`
+	await redisClient.set(signupDataKey, userDataPayload, {
+		expiration: {
+			type: "EX",
+			value: expirationSecound,
+		},
+	});
 
-    const userDataPayload = JSON.stringify({
-        name,
-        email,
-        password: hashedPassword,
-        bloodGroup
-    })
+	// ------sending mail
+	await mailSender({
+		email,
+		subject: "verify your email",
+		mailTemp: OTPMailTemp(otp, 5),
+	});
 
+	return;
+};
 
-
-    await redisClient.set(signupDataKey, userDataPayload,{
-        expiration:{
-            type: "EX",
-            value: expirationSecound
-        }
-    })
-
-
-}
-
-
-
-export const authServices = {signupServices}
+export const authServices = { signupServices };
