@@ -6,3 +6,11 @@ export interface ISignup {
     bloodGroup: BloodGroupList;
     password: string
 }
+
+
+export interface ISignupErrors {
+    name?: string;
+    email?: string;
+    bloodGroup?: string;
+    password?: string
+}
