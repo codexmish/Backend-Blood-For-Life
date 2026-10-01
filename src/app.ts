@@ -26,10 +26,8 @@ app.get("/", async (req: Request, res: Response) => {
 	});
 });
 
-
-
 // =======router
-app.use(`${envConfig.BASE_URL}/auth`, authRouter)
+app.use(`${envConfig.BASE_URL}/auth`, authRouter);
 
 app.use(notFoundRoute);
 app.use(globalErrorHandaler);

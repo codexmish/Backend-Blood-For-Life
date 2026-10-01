@@ -4,7 +4,6 @@ export function isValidateEmail(email: string) {
 	return emailRagex.test(email);
 }
 
-
 // ---password razex
 export function isValidatePassword(password: string) {
 	const passwordRagex = /^.{6,}$/;
