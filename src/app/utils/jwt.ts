@@ -23,6 +23,7 @@ const verifyToken = (token: string, sercret: string) => {
 		return {
 			success: false,
 			message: error.message,
+			error: error,
 		};
 	}
 };

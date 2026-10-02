@@ -13,7 +13,6 @@ import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
 import { WelcomeMailTemp } from "../../emailTemplates/welcomeMailTemp";
 
-
 // ---------signup services
 const signupServices = async (payload: ISignup) => {
 	const { name, email, bloodGroup, password } = payload;
