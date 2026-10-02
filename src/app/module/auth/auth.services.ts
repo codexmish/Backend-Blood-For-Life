@@ -137,10 +137,7 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 		);
 	}
 
-
-
 	const signupPayload: ISignup = JSON.parse(signupData);
-
 
 	// ------creating user
 	const createdUser = await prisma.user.create({
