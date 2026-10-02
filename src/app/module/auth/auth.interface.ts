@@ -7,9 +7,7 @@ export interface ISignup {
 	password: string;
 }
 
-export interface ISignupErrors {
-	name?: string;
-	email?: string;
-	bloodGroup?: string;
-	password?: string;
+export interface IOtpVerify {
+	email: string;
+	otp: string;
 }
