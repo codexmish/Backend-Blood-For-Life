@@ -46,4 +46,38 @@ const otpVerifyController = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-export const authControllers = { signupController, otpVerifyController };
+// ------signin controller
+const signInController = catchAsync(async (req: Request, res: Response) => {
+	const result = await authServices.signInServices(req.body);
+
+	const { accessToken, refreshToken } = result;
+
+	res.cookie("accessToken", accessToken, {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+	});
+
+	res.cookie("refreshToken", refreshToken, {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+	});
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "User login successfull",
+		data: result,
+	});
+});
+
+export const authControllers = {
+	signupController,
+	otpVerifyController,
+	signInController,
+};

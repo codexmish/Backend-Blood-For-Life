@@ -11,3 +11,8 @@ export interface IOtpVerify {
 	email: string;
 	otp: string;
 }
+
+export interface ISignIn {
+	email: string;
+	password: string;
+}

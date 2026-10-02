@@ -1,4 +1,4 @@
-import { IOtpVerify, ISignup } from "./auth.interface";
+import { IOtpVerify, ISignIn, ISignup } from "./auth.interface";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
@@ -12,6 +12,7 @@ import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
 import { WelcomeMailTemp } from "../../emailTemplates/welcomeMailTemp";
+
 
 // ---------signup services
 const signupServices = async (payload: ISignup) => {
@@ -194,4 +195,80 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 	};
 };
 
-export const authServices = { signupServices, otpVerifyServices };
+// ------signIn services
+const signInServices = async (payload: ISignIn) => {
+	const { email, password } = payload;
+
+	// -------checking user exist or not
+	const userExist = await prisma.user.findUnique({
+		where: {
+			email: email,
+		},
+	});
+
+	if (!userExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not found");
+	}
+
+	if (!userExist.emailVerified) {
+		throw new AppError(httpStatus.BAD_REQUEST, "You email is not verified");
+	}
+
+	if (userExist.status === UserStatus.BLOCKED) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"user is blocked. Please contact our support team",
+		);
+	}
+
+	if (userExist.status === UserStatus.DELETED) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"user is deleted. Please contact our support team",
+		);
+	}
+
+	// -----checking if password matched or not
+	const isPasswordMatched = await bcrypt.compare(
+		password,
+		userExist.password as string,
+	);
+
+	console.log("passmatch:", isPasswordMatched);
+
+	if (!isPasswordMatched) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+	}
+
+	// -----getting jwt data
+	const jwtPayload = {
+		userId: userExist.id,
+		name: userExist.name,
+		email: userExist.email,
+		Role: userExist.role,
+	};
+
+	// ------generating jwt token
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_ACCESS_SECRET as string,
+		envConfig.JWT_ACCESS_EXPIRES_IN as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_REFRESH_SECRET as string,
+		envConfig.JWT_REFRESH_EXPIRES_IN as SignOptions,
+	);
+
+	return {
+		accessToken,
+		refreshToken,
+	};
+};
+
+export const authServices = {
+	signupServices,
+	otpVerifyServices,
+	signInServices,
+};
