@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { authControllers } from "./auth.controller";
 import { zodValidation } from "../../middleWares/zodValidation";
-import { otpVerifySchema, userSignupSchema } from "./auth.validation";
+import {
+	otpVerifySchema,
+	userSignInSchema,
+	userSignupSchema,
+} from "./auth.validation";
 
 const router = Router();
 
@@ -17,6 +21,13 @@ router.post(
 	"/otp-verify",
 	zodValidation(otpVerifySchema),
 	authControllers.otpVerifyController,
+);
+
+// ------sign in router
+router.post(
+	"/signin",
+	zodValidation(userSignInSchema),
+	authControllers.signInController,
 );
 
 export const authRouter = router;
