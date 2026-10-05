@@ -76,22 +76,37 @@ const signInController = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+// -------forget password controller
+const forgetPasswordController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await authServices.forgetPasswordServices(req.body);
 
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "OTP sent",
+		});
+	},
+);
 
-const resetPasswordController = catchAsync(async(req: Request, res: Response)=>{
-	const result = await authServices.resetPasswordServices(req.body)
+// ------password reset controller
+const resetPasswordController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await authServices.resetPasswordServices(req.body);
 
-	sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "password updated",
-    data: result,
-  });
-})
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "password updated",
+			data: result,
+		});
+	},
+);
 
 export const authControllers = {
 	signupController,
 	otpVerifyController,
 	signInController,
-	resetPasswordController
+	forgetPasswordController,
+	resetPasswordController,
 };

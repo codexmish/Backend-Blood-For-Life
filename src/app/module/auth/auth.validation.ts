@@ -32,7 +32,10 @@ export const userSignInSchema = z.object({
 		.max(32, "password max 32 caracters long"),
 });
 
-
+// -----reset password validation
+export const forgetPasswordSchema = z.object({
+	email: z.email("Invalid email address").toLowerCase(),
+});
 
 // -----reset password validation
 export const resetPasswordSchema = z.object({
@@ -43,8 +46,8 @@ export const resetPasswordSchema = z.object({
 		.min(6, "otp must be 6 caracters long")
 		.max(6, "otp max 6 caracters long"),
 
-
-	newPassword: z.string("Password is required")
+	newPassword: z
+		.string("Password is required")
 		.min(8, "password must be 8 caracters long")
 		.max(32, "password max 32 caracters long"),
-})
+});
