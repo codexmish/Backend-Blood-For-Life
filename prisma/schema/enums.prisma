@@ -20,3 +20,9 @@ enum BloodGroupList {
   O_POSITIVE
   O_NEGATIVE
 }
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}

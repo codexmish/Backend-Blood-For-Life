@@ -461,9 +461,7 @@ const refreshTokenServices = async (token: string) => {
 };
 
 // -----resend otp services
-const resendOtpServices = async()=>{
-	
-}
+const resendOtpServices = async () => {};
 
 export const authServices = {
 	signupServices,

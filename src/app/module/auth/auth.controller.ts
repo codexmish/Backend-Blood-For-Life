@@ -134,7 +134,6 @@ const refreshTokenController = catchAsync(
 			maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 		});
 
-
 		res.cookie("refreshToken", result.refreshToken, {
 			httpOnly: true,
 			secure: envConfig.node_env === "production",
@@ -173,11 +172,10 @@ const logoutController = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
-// -----resend otp 
-const resendOtpController = catchAsync(async(req: Request, res: Response)=>{
-
-})
+// -----resend otp
+const resendOtpController = catchAsync(
+	async (req: Request, res: Response) => {},
+);
 
 export const authControllers = {
 	signupController,
@@ -188,5 +186,5 @@ export const authControllers = {
 	userProfileController,
 	refreshTokenController,
 	logoutController,
-	resendOtpController
+	resendOtpController,
 };

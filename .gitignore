@@ -6,5 +6,6 @@ dist
 # AI Editors & Agents configuration
 .agents/
 .claude/
+Claude outputs
 .windsurf/
 skills-lock.json
