@@ -213,7 +213,7 @@ const signInServices = async (payload: ISignIn) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (!userExist.emailVerified) {
@@ -283,7 +283,7 @@ const forgetPasswordServices = async (payload: IForgetPass) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
@@ -328,7 +328,7 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
@@ -398,6 +398,68 @@ const userProfileServices = async (payload: RequestUser) => {
 	return userData;
 };
 
+// ----access token generate with refresh token
+const refreshTokenServices = async (token: string) => {
+	if (token) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Refresh token is missing");
+	}
+
+	//   ---velidating token
+	const verifyRefreshToken = jwtUtils.verifyToken(
+		token,
+		envConfig.JWT_REFRESH_SECRET as string,
+	);
+
+	if (!verifyRefreshToken.success || !verifyRefreshToken.data) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			envConfig.node_env === "development"
+				? verifyRefreshToken.error
+				: "Invalid refresh token",
+		);
+	}
+
+	const { userId } = verifyRefreshToken.data as RequestUser;
+	// ---checking user
+	const user = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+	});
+
+	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User is inactive or not found",
+		);
+	}
+
+	//  --------jwt payload
+	const jwtPayload = {
+		userId: user.id,
+		name: user.name,
+		email: user.email,
+		role: user.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_ACCESS_SECRET as string,
+		envConfig.JWT_ACCESS_EXPIRES_IN as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_REFRESH_SECRET as string,
+		envConfig.JWT_REFRESH_EXPIRES_IN as SignOptions,
+	);
+
+	return {
+		accessToken,
+		refreshToken,
+	};
+};
+
 export const authServices = {
 	signupServices,
 	otpVerifyServices,
@@ -405,4 +467,5 @@ export const authServices = {
 	forgetPasswordServices,
 	resetPasswordServices,
 	userProfileServices,
+	refreshTokenServices,
 };

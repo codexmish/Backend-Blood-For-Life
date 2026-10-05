@@ -9,6 +9,11 @@ import { authRouter } from "./app/module/auth/auth.router";
 const app: Application = express();
 
 app.use(express.json());
+
+if (envConfig.node_env === "production") {
+	app.set("trust proxy", 1);
+}
+
 app.use(
 	cors({
 		origin: envConfig.frontend_url,

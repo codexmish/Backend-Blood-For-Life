@@ -56,4 +56,11 @@ router.post(
 // ------get user profile controller
 router.get("/me", authCheck(), authControllers.userProfileController);
 
+// ----access token generate with refresh token
+router.post(
+	"/refreshToken",
+	limiter(10 * 60 * 1000, 5),
+	authControllers.refreshTokenController,
+);
+
 export const authRouter = router;
