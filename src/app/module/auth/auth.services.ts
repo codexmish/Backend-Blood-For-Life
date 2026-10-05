@@ -1,4 +1,10 @@
-import { IOtpVerify, ISignIn, ISignup } from "./auth.interface";
+import {
+	IForgetPass,
+	IOtpVerify,
+	IResetPassword,
+	ISignIn,
+	ISignup,
+} from "./auth.interface";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
@@ -12,6 +18,7 @@ import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
 import { WelcomeMailTemp } from "../../emailTemplates/welcomeMailTemp";
+import { RequestUser } from "../../middleWares/authCheck";
 
 // ---------signup services
 const signupServices = async (payload: ISignup) => {
@@ -266,8 +273,138 @@ const signInServices = async (payload: ISignIn) => {
 	};
 };
 
+// ------forget password  services
+const forgetPasswordServices = async (payload: IForgetPass) => {
+	const { email } = payload;
+
+	// ------checking user
+	const userExist = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
+
+	if (!userExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+	}
+
+	if (userExist.status === UserStatus.BLOCKED) {
+		throw new AppError(httpStatus.FORBIDDEN, "User id Blocked");
+	}
+
+	if (userExist.status === UserStatus.DELETED || userExist.isDeleted) {
+		throw new AppError(httpStatus.GONE, "User id Deleted");
+	}
+
+	// ----otp generate
+	const otp = crypto.randomInt(100000, 1000000).toString();
+	const key = `forget-password-otp: ${userExist.email}`;
+
+	// ----otp set on redis
+	await redisClient.set(key, otp, {
+		expiration: {
+			type: "EX",
+			value: 5 * 60,
+		},
+	});
+
+	// ------sending mail
+	await mailSender({
+		email,
+		subject: "verify your email",
+		mailTemp: OTPMailTemp(otp, 5),
+	});
+
+	return;
+};
+
+// -----reset password services
+const resetPasswordServices = async (payload: IResetPassword) => {
+	const { email, newPassword, otp } = payload;
+
+	// ------checking user
+	const userExist = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
+
+	if (!userExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+	}
+
+	if (userExist.status === UserStatus.BLOCKED) {
+		throw new AppError(httpStatus.FORBIDDEN, "User id Blocked");
+	}
+
+	if (userExist.status === UserStatus.DELETED || userExist.isDeleted) {
+		throw new AppError(httpStatus.GONE, "User id Deleted");
+	}
+
+	// ----check otp
+
+	const key = `forget-password-otp: ${userExist.email}`;
+
+	const redisOtp = await redisClient.get(key);
+
+	if (!redisOtp) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid Otp");
+	}
+
+	if (redisOtp !== otp) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid or wrong Otp");
+	}
+
+	const hashedNewPassword = await bcrypt.hash(
+		newPassword,
+		Number(envConfig.SALT_ROUNDS),
+	);
+
+	// -----update user pass
+
+	const updatedUser = await prisma.user.update({
+		where: {
+			id: userExist.id,
+		},
+		data: {
+			password: hashedNewPassword,
+		},
+		omit: {
+			password: true,
+		},
+	});
+
+	await redisClient.del([key]);
+
+	return updatedUser;
+};
+
+// ------get user profile services
+const userProfileServices = async (payload: RequestUser) => {
+	const { userId } = payload;
+
+	// -----checking user
+	const userData = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+		omit: {
+			password: true,
+		},
+	});
+
+	if (!userData) {
+		throw new AppError(httpStatus.NOT_FOUND, "user not found");
+	}
+
+	return userData;
+};
+
 export const authServices = {
 	signupServices,
 	otpVerifyServices,
 	signInServices,
+	forgetPasswordServices,
+	resetPasswordServices,
+	userProfileServices,
 };

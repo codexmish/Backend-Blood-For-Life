@@ -16,3 +16,13 @@ export interface ISignIn {
 	email: string;
 	password: string;
 }
+
+export interface IResetPassword {
+	email: string;
+	otp: string;
+	newPassword: string;
+}
+
+export interface IForgetPass {
+	email: string;
+}

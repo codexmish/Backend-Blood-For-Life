@@ -4,6 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { authServices } from "./auth.services";
 import httpStatus from "http-status";
 import envConfig from "../../envConfig";
+import { RequestUser } from "../../middleWares/authCheck";
 
 // --------sign up user controller
 const signupController = catchAsync(async (req: Request, res: Response) => {
@@ -76,8 +77,54 @@ const signInController = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+// -------forget password controller
+const forgetPasswordController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await authServices.forgetPasswordServices(req.body);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "OTP sent",
+		});
+	},
+);
+
+// ------password reset controller
+const resetPasswordController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await authServices.resetPasswordServices(req.body);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "password updated",
+			data: result,
+		});
+	},
+);
+
+// ----get user profile controller
+const userProfileController = catchAsync(
+	async (req: Request, res: Response) => {
+		const user = await authServices.userProfileServices(
+			req.user as RequestUser,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "User data get successfully",
+			data: user,
+		});
+	},
+);
+
 export const authControllers = {
 	signupController,
 	otpVerifyController,
 	signInController,
+	forgetPasswordController,
+	resetPasswordController,
+	userProfileController,
 };
