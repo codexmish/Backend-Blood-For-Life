@@ -8,6 +8,7 @@ import {
 	userSignInSchema,
 	userSignupSchema,
 } from "./auth.validation";
+import { authCheck } from "../../middleWares/authCheck";
 
 const router = Router();
 
@@ -45,5 +46,9 @@ router.post(
 	zodValidation(resetPasswordSchema),
 	authControllers.resetPasswordController,
 );
+
+
+// ------get user profile controller 
+router.get("/me", authCheck(), authControllers.userProfileController)
 
 export const authRouter = router;

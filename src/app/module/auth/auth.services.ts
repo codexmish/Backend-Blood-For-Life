@@ -18,6 +18,7 @@ import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
 import { WelcomeMailTemp } from "../../emailTemplates/welcomeMailTemp";
+import { RequestUser } from "../../middleWares/authCheck";
 
 // ---------signup services
 const signupServices = async (payload: ISignup) => {
@@ -378,10 +379,38 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 	return updatedUser;
 };
 
+
+
+
+
+// ------get user profile services
+const userProfileServices = async(payload: RequestUser)=>{
+	const {userId} = payload
+
+	// -----checking user
+	const userData = await prisma.user.findUnique({
+		where: {
+			id: userId
+		},
+		omit: {
+			password: true
+		}
+	})
+
+	if(!userData){
+		throw new AppError(httpStatus.NOT_FOUND, "user not found")
+	}
+
+	return userData
+
+
+}
+
 export const authServices = {
 	signupServices,
 	otpVerifyServices,
 	signInServices,
 	forgetPasswordServices,
 	resetPasswordServices,
+	userProfileServices
 };
