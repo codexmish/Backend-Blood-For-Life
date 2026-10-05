@@ -76,8 +76,22 @@ const signInController = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+
+
+const resetPasswordController = catchAsync(async(req: Request, res: Response)=>{
+	const result = await authServices.resetPasswordServices(req.body)
+
+	sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "password updated",
+    data: result,
+  });
+})
+
 export const authControllers = {
 	signupController,
 	otpVerifyController,
 	signInController,
+	resetPasswordController
 };

@@ -3,6 +3,7 @@ import { authControllers } from "./auth.controller";
 import { zodValidation } from "../../middleWares/zodValidation";
 import {
 	otpVerifySchema,
+	resetPasswordSchema,
 	userSignInSchema,
 	userSignupSchema,
 } from "./auth.validation";
@@ -29,5 +30,9 @@ router.post(
 	zodValidation(userSignInSchema),
 	authControllers.signInController,
 );
+
+
+// -------reset pass router
+router.post("/reser-password", zodValidation(resetPasswordSchema), authControllers.resetPasswordController)
 
 export const authRouter = router;
