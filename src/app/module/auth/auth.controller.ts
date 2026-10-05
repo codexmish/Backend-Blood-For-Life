@@ -147,6 +147,18 @@ const refreshTokenController = catchAsync(
 	},
 );
 
+// -----logout controller
+const logoutController = catchAsync(async (req: Request, res: Response) => {
+	res.clearCookie("accessToken");
+	res.clearCookie("refreshToken");
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "User logged out successfully",
+	});
+});
+
 export const authControllers = {
 	signupController,
 	otpVerifyController,
@@ -155,4 +167,5 @@ export const authControllers = {
 	resetPasswordController,
 	userProfileController,
 	refreshTokenController,
+	logoutController,
 };
