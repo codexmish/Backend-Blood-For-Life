@@ -73,7 +73,6 @@ const signInController = catchAsync(async (req: Request, res: Response) => {
 		statusCode: httpStatus.OK,
 		success: true,
 		message: "User login successfull",
-		data: result,
 	});
 });
 

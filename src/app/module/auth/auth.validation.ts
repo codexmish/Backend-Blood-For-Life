@@ -1,4 +1,4 @@
-import z, { email } from "zod";
+import z from "zod";
 import { BloodGroupList } from "../../../generated/prisma/enums";
 
 // -----user signup validation

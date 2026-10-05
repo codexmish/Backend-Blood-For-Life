@@ -9,12 +9,14 @@ import {
 	userSignupSchema,
 } from "./auth.validation";
 import { authCheck } from "../../middleWares/authCheck";
+import { limiter } from "../../utils/requestLimiter";
 
 const router = Router();
 
 // -----signup router
 router.post(
 	"/signup",
+	limiter(10 * 60 * 1000, 5, false),
 	zodValidation(userSignupSchema),
 	authControllers.signupController,
 );
@@ -22,6 +24,7 @@ router.post(
 // -------otp verify and create user router
 router.post(
 	"/otp-verify",
+	limiter(10 * 60 * 1000, 5),
 	zodValidation(otpVerifySchema),
 	authControllers.otpVerifyController,
 );
@@ -29,6 +32,7 @@ router.post(
 // ------sign in router
 router.post(
 	"/signin",
+	limiter(10 * 60 * 1000, 5),
 	zodValidation(userSignInSchema),
 	authControllers.signInController,
 );
@@ -36,13 +40,15 @@ router.post(
 // -------forgetPassword router
 router.post(
 	"/forget-password",
+	limiter(10 * 60 * 1000, 5, false),
 	zodValidation(forgetPasswordSchema),
 	authControllers.forgetPasswordController,
 );
 
 // -------reset pass router
 router.post(
-	"/reser-password",
+	"/reset-password",
+	limiter(10 * 60 * 1000, 5),
 	zodValidation(resetPasswordSchema),
 	authControllers.resetPasswordController,
 );

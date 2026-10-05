@@ -79,7 +79,7 @@ export const authCheck = (...requiredRoles: Role[]) => {
 			);
 		}
 
-		if (user.status === UserStatus.DELETED) {
+		if (user.status === UserStatus.DELETED || user.isDeleted) {
 			throw new AppError(
 				httpStatus.FORBIDDEN,
 				"Your account has been deleted. Please contact support.",

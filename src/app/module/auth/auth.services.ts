@@ -108,7 +108,7 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 		);
 	}
 
-	if (userExist?.status === UserStatus.DELETED) {
+	if (userExist?.status === UserStatus.DELETED || userExist?.isDeleted) {
 		throw new AppError(
 			httpStatus.BAD_REQUEST,
 			"user is deleted. Please contact our support team",
@@ -168,7 +168,7 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 		userId: createdUser.id,
 		name: createdUser.name,
 		email: createdUser.email,
-		Role: createdUser.role,
+		role: createdUser.role,
 	};
 
 	// ------generating jwt token
@@ -213,7 +213,7 @@ const signInServices = async (payload: ISignIn) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not found");
+		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
 	}
 
 	if (!userExist.emailVerified) {
@@ -227,7 +227,7 @@ const signInServices = async (payload: ISignIn) => {
 		);
 	}
 
-	if (userExist.status === UserStatus.DELETED) {
+	if (userExist.status === UserStatus.DELETED || userExist.isDeleted) {
 		throw new AppError(
 			httpStatus.BAD_REQUEST,
 			"user is deleted. Please contact our support team",
@@ -240,8 +240,6 @@ const signInServices = async (payload: ISignIn) => {
 		userExist.password as string,
 	);
 
-	console.log("passmatch:", isPasswordMatched);
-
 	if (!isPasswordMatched) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
 	}
@@ -251,7 +249,7 @@ const signInServices = async (payload: ISignIn) => {
 		userId: userExist.id,
 		name: userExist.name,
 		email: userExist.email,
-		Role: userExist.role,
+		role: userExist.role,
 	};
 
 	// ------generating jwt token
@@ -285,7 +283,7 @@ const forgetPasswordServices = async (payload: IForgetPass) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
@@ -330,7 +328,7 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+		throw new AppError(httpStatus.NOT_FOUND, "Forbidden");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
