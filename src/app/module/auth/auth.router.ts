@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authControllers } from "./auth.controller";
 import { zodValidation } from "../../middleWares/zodValidation";
 import {
+	forgetPasswordSchema,
 	otpVerifySchema,
 	resetPasswordSchema,
 	userSignInSchema,
@@ -32,7 +33,11 @@ router.post(
 );
 
 // -------forgetPassword router
-router.post("forget-password", authControllers.forgetPasswordController);
+router.post(
+	"/forget-password",
+	zodValidation(forgetPasswordSchema),
+	authControllers.forgetPasswordController,
+);
 
 // -------reset pass router
 router.post(

@@ -47,7 +47,7 @@ export const resetPasswordSchema = z.object({
 		.max(6, "otp max 6 caracters long"),
 
 	newPassword: z
-		.string("Password is required")
+		.string("Mew Password is required")
 		.min(8, "password must be 8 caracters long")
 		.max(32, "password max 32 caracters long"),
 });

@@ -307,6 +307,13 @@ const forgetPasswordServices = async (payload: IForgetPass) => {
 		},
 	});
 
+	// ------sending mail
+	await mailSender({
+		email,
+		subject: "verify your email",
+		mailTemp: OTPMailTemp(otp, 5),
+	});
+
 	return;
 };
 
@@ -360,6 +367,9 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 		},
 		data: {
 			password: hashedNewPassword,
+		},
+		omit: {
+			password: true,
 		},
 	});
 
