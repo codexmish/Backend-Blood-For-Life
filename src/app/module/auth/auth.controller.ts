@@ -73,7 +73,6 @@ const signInController = catchAsync(async (req: Request, res: Response) => {
 		statusCode: httpStatus.OK,
 		success: true,
 		message: "User login successfull",
-		data: result,
 	});
 });
 
@@ -120,6 +119,66 @@ const userProfileController = catchAsync(
 	},
 );
 
+// ----access token generate with refresh token
+const refreshTokenController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await authServices.refreshTokenServices(
+			req.cookies.refreshToken,
+		);
+
+		res.cookie("accessToken", result.accessToken, {
+			httpOnly: true,
+			secure: envConfig.node_env === "production",
+			sameSite: envConfig.node_env === "production" ? "none" : "lax",
+			path: "/",
+			maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
+		});
+
+
+		res.cookie("refreshToken", result.refreshToken, {
+			httpOnly: true,
+			secure: envConfig.node_env === "production",
+			sameSite: envConfig.node_env === "production" ? "none" : "lax",
+			path: "/",
+			maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+		});
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "New tokens generated successfully",
+		});
+	},
+);
+
+// -----logout controller
+const logoutController = catchAsync(async (req: Request, res: Response) => {
+	res.clearCookie("accessToken", {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+	});
+	res.clearCookie("refreshToken", {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+	});
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "User logged out successfully",
+	});
+});
+
+
+// -----resend otp 
+const resendOtpController = catchAsync(async(req: Request, res: Response)=>{
+
+})
+
 export const authControllers = {
 	signupController,
 	otpVerifyController,
@@ -127,4 +186,7 @@ export const authControllers = {
 	forgetPasswordController,
 	resetPasswordController,
 	userProfileController,
+	refreshTokenController,
+	logoutController,
+	resendOtpController
 };

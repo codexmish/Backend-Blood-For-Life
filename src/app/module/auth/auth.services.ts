@@ -108,7 +108,7 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 		);
 	}
 
-	if (userExist?.status === UserStatus.DELETED) {
+	if (userExist?.status === UserStatus.DELETED || userExist?.isDeleted) {
 		throw new AppError(
 			httpStatus.BAD_REQUEST,
 			"user is deleted. Please contact our support team",
@@ -168,7 +168,7 @@ const otpVerifyServices = async (payload: IOtpVerify) => {
 		userId: createdUser.id,
 		name: createdUser.name,
 		email: createdUser.email,
-		Role: createdUser.role,
+		role: createdUser.role,
 	};
 
 	// ------generating jwt token
@@ -213,7 +213,7 @@ const signInServices = async (payload: ISignIn) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not found");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (!userExist.emailVerified) {
@@ -227,7 +227,7 @@ const signInServices = async (payload: ISignIn) => {
 		);
 	}
 
-	if (userExist.status === UserStatus.DELETED) {
+	if (userExist.status === UserStatus.DELETED || userExist.isDeleted) {
 		throw new AppError(
 			httpStatus.BAD_REQUEST,
 			"user is deleted. Please contact our support team",
@@ -240,8 +240,6 @@ const signInServices = async (payload: ISignIn) => {
 		userExist.password as string,
 	);
 
-	console.log("passmatch:", isPasswordMatched);
-
 	if (!isPasswordMatched) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
 	}
@@ -251,7 +249,7 @@ const signInServices = async (payload: ISignIn) => {
 		userId: userExist.id,
 		name: userExist.name,
 		email: userExist.email,
-		Role: userExist.role,
+		role: userExist.role,
 	};
 
 	// ------generating jwt token
@@ -285,7 +283,7 @@ const forgetPasswordServices = async (payload: IForgetPass) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
@@ -330,7 +328,7 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 	});
 
 	if (!userExist) {
-		throw new AppError(httpStatus.NOT_FOUND, "User not exist");
+		throw new AppError(httpStatus.FORBIDDEN, "Invalid credentials");
 	}
 
 	if (userExist.status === UserStatus.BLOCKED) {
@@ -400,6 +398,73 @@ const userProfileServices = async (payload: RequestUser) => {
 	return userData;
 };
 
+// ----access token generate with refresh token
+const refreshTokenServices = async (token: string) => {
+	if (!token) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Refresh token is missing");
+	}
+
+	//   ---velidating token
+	const verifyRefreshToken = jwtUtils.verifyToken(
+		token,
+		envConfig.JWT_REFRESH_SECRET as string,
+	);
+
+	if (!verifyRefreshToken.success || !verifyRefreshToken.data) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			envConfig.node_env === "development"
+				? verifyRefreshToken.error
+				: "Invalid refresh token",
+		);
+	}
+
+	const { userId } = verifyRefreshToken.data as RequestUser;
+	// ---checking user
+	const user = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+	});
+
+	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
+		throw new AppError(
+			httpStatus.UNAUTHORIZED,
+			"User is inactive or not found",
+		);
+	}
+
+	//  --------jwt payload
+	const jwtPayload = {
+		userId: user.id,
+		name: user.name,
+		email: user.email,
+		role: user.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_ACCESS_SECRET as string,
+		envConfig.JWT_ACCESS_EXPIRES_IN as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		envConfig.JWT_REFRESH_SECRET as string,
+		envConfig.JWT_REFRESH_EXPIRES_IN as SignOptions,
+	);
+
+	return {
+		accessToken,
+		refreshToken,
+	};
+};
+
+// -----resend otp services
+const resendOtpServices = async()=>{
+	
+}
+
 export const authServices = {
 	signupServices,
 	otpVerifyServices,
@@ -407,4 +472,5 @@ export const authServices = {
 	forgetPasswordServices,
 	resetPasswordServices,
 	userProfileServices,
+	refreshTokenServices,
 };

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { Prisma } from "../../generated/prisma/client";
 import { AppError } from "../utils/appErro";
+import envConfig from "../envConfig";
 
 export const globalErrorHandaler = async (
 	err: any,
@@ -19,13 +20,13 @@ export const globalErrorHandaler = async (
 		statusCode = httpStatus.BAD_REQUEST;
 		errMessage = "You have provided incorrect data type or missing data";
 	} else if (err instanceof Prisma.PrismaClientKnownRequestError) {
-		if (err.code === "p2002") {
+		if (err.code === "P2002") {
 			statusCode = httpStatus.BAD_REQUEST;
 			errMessage = "Duplicate key Error";
-		} else if (err.code === "p2003") {
+		} else if (err.code === "P2003") {
 			statusCode = httpStatus.BAD_REQUEST;
 			errMessage = "Foreign key constraint failed";
-		} else if (err.code === "p2025") {
+		} else if (err.code === "P2025") {
 			statusCode = httpStatus.BAD_REQUEST;
 			errMessage =
 				"An operation failed because it depends on one or more records that were required but not found. ";
@@ -49,6 +50,6 @@ export const globalErrorHandaler = async (
 		statusCode: statusCode,
 		name: errorName,
 		message: errMessage,
-		error: err.stack,
+		error: envConfig.node_env === "development" ? err.stack : "",
 	});
 };
