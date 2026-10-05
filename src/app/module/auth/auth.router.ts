@@ -58,7 +58,7 @@ router.get("/me", authCheck(), authControllers.userProfileController);
 
 // ----access token generate with refresh token
 router.post(
-	"/refreshToken",
+	"/refresh-token",
 	limiter(10 * 60 * 1000, 5),
 	authControllers.refreshTokenController,
 );

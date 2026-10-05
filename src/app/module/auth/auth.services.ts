@@ -400,7 +400,7 @@ const userProfileServices = async (payload: RequestUser) => {
 
 // ----access token generate with refresh token
 const refreshTokenServices = async (token: string) => {
-	if (token) {
+	if (!token) {
 		throw new AppError(httpStatus.UNAUTHORIZED, "Refresh token is missing");
 	}
 
@@ -459,6 +459,11 @@ const refreshTokenServices = async (token: string) => {
 		refreshToken,
 	};
 };
+
+// -----resend otp services
+const resendOtpServices = async()=>{
+	
+}
 
 export const authServices = {
 	signupServices,

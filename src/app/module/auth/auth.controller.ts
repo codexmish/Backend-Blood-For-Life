@@ -128,14 +128,18 @@ const refreshTokenController = catchAsync(
 
 		res.cookie("accessToken", result.accessToken, {
 			httpOnly: true,
-			secure: false,
-			sameSite: "none",
+			secure: envConfig.node_env === "production",
+			sameSite: envConfig.node_env === "production" ? "none" : "lax",
+			path: "/",
 			maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
 		});
+
+
 		res.cookie("refreshToken", result.refreshToken, {
 			httpOnly: true,
-			secure: false,
-			sameSite: "none",
+			secure: envConfig.node_env === "production",
+			sameSite: envConfig.node_env === "production" ? "none" : "lax",
+			path: "/",
 			maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
 		});
 
@@ -149,8 +153,18 @@ const refreshTokenController = catchAsync(
 
 // -----logout controller
 const logoutController = catchAsync(async (req: Request, res: Response) => {
-	res.clearCookie("accessToken");
-	res.clearCookie("refreshToken");
+	res.clearCookie("accessToken", {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+	});
+	res.clearCookie("refreshToken", {
+		httpOnly: true,
+		secure: envConfig.node_env === "production",
+		sameSite: envConfig.node_env === "production" ? "none" : "lax",
+		path: "/",
+	});
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
@@ -158,6 +172,12 @@ const logoutController = catchAsync(async (req: Request, res: Response) => {
 		message: "User logged out successfully",
 	});
 });
+
+
+// -----resend otp 
+const resendOtpController = catchAsync(async(req: Request, res: Response)=>{
+
+})
 
 export const authControllers = {
 	signupController,
@@ -168,4 +188,5 @@ export const authControllers = {
 	userProfileController,
 	refreshTokenController,
 	logoutController,
+	resendOtpController
 };
