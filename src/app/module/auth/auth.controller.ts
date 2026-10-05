@@ -104,20 +104,21 @@ const resetPasswordController = catchAsync(
 	},
 );
 
-
 // ----get user profile controller
-const userProfileController = catchAsync(async(req: Request, res: Response)=>{
-	const user = await authServices.userProfileServices(req.user as RequestUser)
+const userProfileController = catchAsync(
+	async (req: Request, res: Response) => {
+		const user = await authServices.userProfileServices(
+			req.user as RequestUser,
+		);
 
-	sendResponse(res, {
+		sendResponse(res, {
 			statusCode: httpStatus.OK,
 			success: true,
 			message: "User data get successfully",
 			data: user,
 		});
-
-
-})
+	},
+);
 
 export const authControllers = {
 	signupController,
@@ -125,5 +126,5 @@ export const authControllers = {
 	signInController,
 	forgetPasswordController,
 	resetPasswordController,
-	userProfileController
+	userProfileController,
 };

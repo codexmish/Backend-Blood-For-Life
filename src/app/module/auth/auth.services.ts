@@ -379,32 +379,26 @@ const resetPasswordServices = async (payload: IResetPassword) => {
 	return updatedUser;
 };
 
-
-
-
-
 // ------get user profile services
-const userProfileServices = async(payload: RequestUser)=>{
-	const {userId} = payload
+const userProfileServices = async (payload: RequestUser) => {
+	const { userId } = payload;
 
 	// -----checking user
 	const userData = await prisma.user.findUnique({
 		where: {
-			id: userId
+			id: userId,
 		},
 		omit: {
-			password: true
-		}
-	})
+			password: true,
+		},
+	});
 
-	if(!userData){
-		throw new AppError(httpStatus.NOT_FOUND, "user not found")
+	if (!userData) {
+		throw new AppError(httpStatus.NOT_FOUND, "user not found");
 	}
 
-	return userData
-
-
-}
+	return userData;
+};
 
 export const authServices = {
 	signupServices,
@@ -412,5 +406,5 @@ export const authServices = {
 	signInServices,
 	forgetPasswordServices,
 	resetPasswordServices,
-	userProfileServices
+	userProfileServices,
 };
