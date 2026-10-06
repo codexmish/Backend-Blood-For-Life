@@ -23,8 +23,6 @@ export const updateProfileSchema = z
 			.min(3, "address must be 3 caracters long")
 			.max(200, "address max 200 caracters long")
 			.optional(),
-
-		isAvailable: z.boolean("isAvailable must be true or false").optional(),
 	})
 	.refine((data) => Object.values(data).some((value) => value !== undefined), {
 		message: "Provide at least one field to update",
