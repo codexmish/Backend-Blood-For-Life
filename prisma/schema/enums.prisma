@@ -1,7 +1,8 @@
 enum Role {
   SUPER_ADMIN
   ADMIN
-  USER
+  RECIPIENT
+  DONOR
 }
 
 enum UserStatus {

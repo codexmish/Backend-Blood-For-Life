@@ -1,0 +1,16 @@
+model Donor {
+  id                 String       @id @default(uuid())
+  isAvailable        Boolean      @default(true)
+  lastDonationDate   DateTime?
+  totalDonations     Int          @default(0)
+  weight             String?
+  healthNote         String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  userId             String       @unique
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isAvailable, lastDonationDate])
+  @@map("donors")
+}

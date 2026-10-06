@@ -6,22 +6,24 @@ model User {
   bloodGroup         BloodGroupList
   gender             Gender?
   phone              String?
-  district           String?
   address           String?
-  isAvailable        Boolean     @default(false)
-  lastDonationDate   DateTime?
-  totalDonations     String?
   emailVerified      Boolean      @default(false)
-  role               Role         @default(USER)
+  role               Role         @default(RECIPIENT)
   status             UserStatus   @default(ACTIVE)
   avater             String       @default("")
   avaterPublicId      String       @default("")
+
+
+  donor              Donor?
+
+
+
   isDeleted          Boolean      @default(false)
   deletedAt          DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
   @@unique([email])
-  @@index([bloodGroup, district])
+  @@index([bloodGroup, address])
   @@map("users")
 }
