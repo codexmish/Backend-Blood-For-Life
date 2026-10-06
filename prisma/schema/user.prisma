@@ -6,6 +6,7 @@ model User {
   bloodGroup         BloodGroupList
   gender             Gender?
   phone              String?
+  district           String?
   address           String?
   isAvailable        Boolean     @default(false)
   lastDonationDate   DateTime?
@@ -21,5 +22,6 @@ model User {
   updatedAt          DateTime     @updatedAt
 
   @@unique([email])
+  @@index([bloodGroup, district])
   @@map("users")
 }
