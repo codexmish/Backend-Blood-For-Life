@@ -28,4 +28,7 @@ router.patch(
 // -----get all donor
 router.get("/donors", authCheck(), donorController.getAllDonor);
 
+// -----get single donor (keep below "/donors", otherwise "donors" is read as an id)
+router.get("/:id", authCheck(), donorController.getSingleDonor);
+
 export const donorRouter = router;

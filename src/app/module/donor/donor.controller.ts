@@ -47,8 +47,23 @@ const getAllDonor = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+// ------get single donor
+const getSingleDonor = catchAsync(async (req: Request, res: Response) => {
+	const result = await donorServices.getSingleDonorServices(
+		req.params.id as string,
+	);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Donor retrieved successfully",
+		data: result,
+	});
+});
+
 export const donorController = {
 	registerDonor,
 	updateDonorProfile,
 	getAllDonor,
+	getSingleDonor,
 };

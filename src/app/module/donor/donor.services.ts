@@ -220,8 +220,46 @@ const getAllDonorServices = async (query: IDonorQuery) => {
 	};
 };
 
+// ------get single donor services
+const getSingleDonorServices = async (donorId: string) => {
+	const donor = await prisma.donor.findFirst({
+		where: {
+			id: donorId,
+			user: {
+				role: Role.DONOR,
+				status: UserStatus.ACTIVE,
+				isDeleted: false,
+			},
+		},
+		select: {
+			id: true,
+			isAvailable: true,
+			lastDonationDate: true,
+			totalDonations: true,
+			createdAt: true,
+			user: {
+				select: {
+					id: true,
+					name: true,
+					bloodGroup: true,
+					gender: true,
+					address: true,
+					avater: true,
+				},
+			},
+		},
+	});
+
+	if (!donor) {
+		throw new AppError(httpStatus.NOT_FOUND, "Donor not found");
+	}
+
+	return donor;
+};
+
 export const donorServices = {
 	registerDonorServices,
 	updateDonorProfileServices,
 	getAllDonorServices,
+	getSingleDonorServices,
 };
