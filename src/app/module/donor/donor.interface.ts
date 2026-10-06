@@ -10,6 +10,10 @@ export interface IUpdateDonor {
 	lastDonationDate?: Date;
 }
 
+export interface IDonorAvailability {
+	isAvailable: boolean;
+}
+
 export interface IDonorQuery {
 	searchTerm?: string;
 	page?: string;

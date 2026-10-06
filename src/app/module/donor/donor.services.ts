@@ -1,4 +1,9 @@
-import { IDonorQuery, IRegisterDonor, IUpdateDonor } from "./donor.interface";
+import {
+	IDonorAvailability,
+	IDonorQuery,
+	IRegisterDonor,
+	IUpdateDonor,
+} from "./donor.interface";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
@@ -105,22 +110,48 @@ const updateDonorProfileServices = async (
 	return updatedDonor;
 };
 
+// ------change donor availability services
+const changeAvailabilityServices = async (
+	payload: IDonorAvailability,
+	userId: string,
+) => {
+	// -----checking donor profile exist or not
+	const donorExist = await prisma.donor.findUnique({
+		where: {
+			userId,
+		},
+	});
+
+	if (!donorExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "Donor profile not found");
+	}
+
+	// -----updating availability
+	const updatedDonor = await prisma.donor.update({
+		where: {
+			userId,
+		},
+		data: {
+			isAvailable: payload.isAvailable,
+		},
+	});
+
+	return updatedDonor;
+};
+
 // ------get all donor
 const getAllDonorServices = async (query: IDonorQuery) => {
-	
-
-    // -----limit
+	// -----limit
 	let limit = Number(query.limit) || 5;
-	if (limit < 1) limit = 1; 
-	if (limit > 50) limit = 50; 
-    // -----page
-	let page = Number(query.page) || 1; 
+	if (limit < 1) limit = 1;
+	if (limit > 50) limit = 50;
+	// -----page
+	let page = Number(query.page) || 1;
 	if (page < 1) page = 1;
 	const skip = (page - 1) * limit;
 
-
-    // -----sorting
-    const sortableFields = ["createdAt", "lastDonationDate", "totalDonations"];
+	// -----sorting
+	const sortableFields = ["createdAt", "lastDonationDate", "totalDonations"];
 	const sortBy = sortableFields.includes(query.sortBy as string)
 		? (query.sortBy as string)
 		: "createdAt";
@@ -179,7 +210,7 @@ const getAllDonorServices = async (query: IDonorQuery) => {
 	// ------finding  donors
 	const donorList = await prisma.donor.findMany({
 		where: {
-			AND: andCondition
+			AND: andCondition,
 		},
 		skip,
 		take: limit,
@@ -262,4 +293,5 @@ export const donorServices = {
 	updateDonorProfileServices,
 	getAllDonorServices,
 	getSingleDonorServices,
+	changeAvailabilityServices,
 };

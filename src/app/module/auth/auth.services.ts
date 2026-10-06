@@ -389,6 +389,9 @@ const userProfileServices = async (payload: RequestUser) => {
 		omit: {
 			password: true,
 		},
+		include: {
+			donor: true,
+		},
 	});
 
 	if (!userData) {

@@ -2,7 +2,11 @@ import { Router } from "express";
 import { donorController } from "./donor.controller";
 import { limiter } from "../../utils/requestLimiter";
 import { zodValidation } from "../../middleWares/zodValidation";
-import { registerDonorSchema, updateDonorSchema } from "./donor.validation";
+import {
+	donorAvailabilitySchema,
+	registerDonorSchema,
+	updateDonorSchema,
+} from "./donor.validation";
 import { authCheck } from "../../middleWares/authCheck";
 import { Role } from "../../../generated/prisma/enums";
 
@@ -23,6 +27,14 @@ router.patch(
 	authCheck(Role.DONOR),
 	zodValidation(updateDonorSchema),
 	donorController.updateDonorProfile,
+);
+
+// -----change donor availability
+router.patch(
+	"/me/availability",
+	authCheck(Role.DONOR),
+	zodValidation(donorAvailabilitySchema),
+	donorController.changeAvailability,
 );
 
 // -----get all donor

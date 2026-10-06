@@ -33,3 +33,8 @@ export const updateDonorSchema = registerDonorSchema.refine(
 		message: "Provide at least one field to update",
 	},
 );
+
+// -----donor availability validation
+export const donorAvailabilitySchema = z.object({
+	isAvailable: z.boolean("isAvailable must be true or false"),
+});

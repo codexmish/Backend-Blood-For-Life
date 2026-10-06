@@ -41,7 +41,7 @@ const getAllDonor = catchAsync(async (req: Request, res: Response) => {
 	sendResponse(res, {
 		statusCode: httpStatus.OK,
 		success: true,
-		message: "Donor profile updated successfully",
+		message: "Donor profile get successfully",
 		data: donorList.data,
 		meta: donorList.meta,
 	});
@@ -61,9 +61,25 @@ const getSingleDonor = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+// ------change donor availability
+const changeAvailability = catchAsync(async (req: Request, res: Response) => {
+	const result = await donorServices.changeAvailabilityServices(
+		req.body,
+		req.user?.userId as string,
+	);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Donor availability updated successfully",
+		data: result,
+	});
+});
+
 export const donorController = {
 	registerDonor,
 	updateDonorProfile,
 	getAllDonor,
 	getSingleDonor,
+	changeAvailability,
 };
