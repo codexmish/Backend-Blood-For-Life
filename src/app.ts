@@ -6,6 +6,7 @@ import { notFoundRoute } from "./app/middleWares/notFoundRoute";
 import { globalErrorHandaler } from "./app/middleWares/globalErrorHandaler";
 import { authRouter } from "./app/module/auth/auth.router";
 import { userRouter } from "./app/module/user/user.router";
+import { donorRouter } from "./app/module/donor/donor.router";
 
 const app: Application = express();
 
@@ -35,6 +36,7 @@ app.get("/", async (req: Request, res: Response) => {
 // =======router
 app.use(`${envConfig.BASE_URL}/auth`, authRouter);
 app.use(`${envConfig.BASE_URL}/user`, userRouter);
+app.use(`${envConfig.BASE_URL}/donor`, donorRouter);
 
 app.use(notFoundRoute);
 app.use(globalErrorHandaler);
