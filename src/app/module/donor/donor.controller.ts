@@ -19,4 +19,21 @@ const registerDonor = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-export const donorController = { registerDonor };
+
+
+// ----update donor profile controller
+const updateDonorProfile = catchAsync(async (req: Request, res: Response) => {
+	const result = await donorServices.updateDonorProfileServices(
+		req.body,
+		req.user?.userId as string,
+	);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Donor profile updated successfully",
+		data: result,
+	});
+});
+
+export const donorController = { registerDonor, updateDonorProfile };

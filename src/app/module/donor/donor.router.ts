@@ -2,7 +2,7 @@ import { Router } from "express";
 import { donorController } from "./donor.controller";
 import { limiter } from "../../utils/requestLimiter";
 import { zodValidation } from "../../middleWares/zodValidation";
-import { registerDonorSchema } from "./donor.validation";
+import { registerDonorSchema, updateDonorSchema } from "./donor.validation";
 import { authCheck } from "../../middleWares/authCheck";
 import { Role } from "../../../generated/prisma/enums";
 
@@ -15,6 +15,14 @@ router.post(
 	authCheck(Role.RECIPIENT),
 	zodValidation(registerDonorSchema),
 	donorController.registerDonor,
+);
+
+// -----update donor profile
+router.patch(
+	"/me",
+	authCheck(Role.DONOR),
+	zodValidation(updateDonorSchema),
+	donorController.updateDonorProfile,
 );
 
 export const donorRouter = router;

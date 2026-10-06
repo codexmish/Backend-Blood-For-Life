@@ -25,3 +25,11 @@ export const registerDonorSchema = z.object({
 		)
 		.optional(),
 });
+
+// -----update donor profile validation (same fields, at least one required)
+export const updateDonorSchema = registerDonorSchema.refine(
+	(data) => Object.values(data).some((value) => value !== undefined),
+	{
+		message: "Provide at least one field to update",
+	},
+);

@@ -1,4 +1,4 @@
-import { IRegisterDonor } from "./donor.interface";
+import { IRegisterDonor, IUpdateDonor } from "./donor.interface";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
@@ -73,4 +73,34 @@ const registerDonorServices = async (
 	return donor;
 };
 
-export const donorServices = { registerDonorServices };
+// ------update donor profile services
+const updateDonorProfileServices = async (
+	payload: IUpdateDonor,
+	userId: string,
+) => {
+	// -----checking donor profile exist or not
+	const donorExist = await prisma.donor.findUnique({
+		where: {
+			userId,
+		},
+	});
+
+	if (!donorExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "Donor profile not found");
+	}
+
+	// -----updating donor profile
+	const updatedDonor = await prisma.donor.update({
+		where: {
+			userId,
+		},
+		data: payload,
+	});
+
+	return updatedDonor;
+};
+
+export const donorServices = {
+	registerDonorServices,
+	updateDonorProfileServices,
+};
