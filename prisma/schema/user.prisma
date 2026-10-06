@@ -1,27 +1,25 @@
 model User {
-  id                 String       @id @default(uuid())
-  name               String
-  email              String
-  password           String
-  bloodGroup         BloodGroupList
-  gender             Gender?
-  phone              String?
-  address           String?
-  emailVerified      Boolean      @default(false)
-  role               Role         @default(RECIPIENT)
-  status             UserStatus   @default(ACTIVE)
-  avater             String       @default("")
-  avaterPublicId      String       @default("")
+  id             String         @id @default(uuid())
+  name           String
+  email          String
+  password       String
+  bloodGroup     BloodGroupList
+  gender         Gender?
+  phone          String?
+  address        String?
+  emailVerified  Boolean        @default(false)
+  role           Role           @default(RECIPIENT)
+  status         UserStatus     @default(ACTIVE)
+  avater         String         @default("")
+  avaterPublicId String         @default("")
 
+  donor         Donor?
+  bloodRequests Bloodrequest[]
 
-  donor              Donor?
-
-
-
-  isDeleted          Boolean      @default(false)
-  deletedAt          DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@unique([email])
   @@index([bloodGroup, address])

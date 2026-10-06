@@ -27,3 +27,15 @@ enum Gender {
   FEMALE
   OTHER
 }
+
+enum Urgency {
+  NORMAL
+  URGENT
+  EMERGENCY
+}
+
+enum BloodrequestStatus {
+  OPEN
+  FULFILLED
+  CANCELLED
+}
