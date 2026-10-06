@@ -9,3 +9,13 @@ export interface IUpdateDonor {
 	healthNote?: string;
 	lastDonationDate?: Date;
 }
+
+export interface IDonorQuery {
+	searchTerm?: string;
+	page?: string;
+	limit?: string;
+	sortOrder?: string;
+	sortBy?: string;
+
+	[key: string]: any;
+}

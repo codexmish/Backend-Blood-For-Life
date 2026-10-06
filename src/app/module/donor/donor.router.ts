@@ -25,4 +25,7 @@ router.patch(
 	donorController.updateDonorProfile,
 );
 
+// -----get all donor
+router.get("/donors", authCheck(), donorController.getAllDonor);
+
 export const donorRouter = router;

@@ -19,8 +19,6 @@ const registerDonor = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-
-
 // ----update donor profile controller
 const updateDonorProfile = catchAsync(async (req: Request, res: Response) => {
 	const result = await donorServices.updateDonorProfileServices(
@@ -36,4 +34,21 @@ const updateDonorProfile = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-export const donorController = { registerDonor, updateDonorProfile };
+// ------get all donor
+const getAllDonor = catchAsync(async (req: Request, res: Response) => {
+	const donorList = await donorServices.getAllDonorServices(req.query);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Donor profile updated successfully",
+		data: donorList.data,
+		meta: donorList.meta,
+	});
+});
+
+export const donorController = {
+	registerDonor,
+	updateDonorProfile,
+	getAllDonor,
+};
