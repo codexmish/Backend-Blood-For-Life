@@ -36,4 +36,12 @@ router.get(
 	bloodRequestControllers.getAllMyRequestController,
 );
 
+// -----update request (same fields as create, all optional)
+router.patch(
+	"/request/:id",
+	authCheck(),
+	zodValidation(createBloodRequestValidationSchema.partial()),
+	bloodRequestControllers.updateRequestController,
+);
+
 export const bloodRequestRouter = router;

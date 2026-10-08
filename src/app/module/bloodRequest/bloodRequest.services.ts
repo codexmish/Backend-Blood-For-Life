@@ -245,9 +245,54 @@ const getAllMyRequestServices = async (query: IQuery, userId: string) => {
 	};
 };
 
+// -----update blood request
+const updateRequestServices = async (
+	payload: Partial<ICreateBloodRequest>,
+	requestId: string,
+	userId: string,
+) => {
+	// ------checking request exist or not
+	const requestExist = await prisma.bloodrequest.findUnique({
+		where: {
+			id: requestId,
+		},
+	});
+
+	if (!requestExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "Blood request not found");
+	}
+
+	// ------only requester can edit
+	if (requestExist.requesterId !== userId) {
+		throw new AppError(
+			httpStatus.FORBIDDEN,
+			"You are not allowed to edit this request",
+		);
+	}
+
+	// ------only open request can be edited
+	if (requestExist.status !== BloodrequestStatus.OPEN) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Only open request can be edited",
+		);
+	}
+
+	// --------updating blood request
+	const updatedRequest = await prisma.bloodrequest.update({
+		where: {
+			id: requestExist.id,
+		},
+		data: payload,
+	});
+
+	return updatedRequest;
+};
+
 export const bloodRequestServices = {
 	createBloodRequest,
 	getAllRequestServices,
 	getSigleRequestService,
-	getAllMyRequestServices
+	getAllMyRequestServices,
+	updateRequestServices,
 };
