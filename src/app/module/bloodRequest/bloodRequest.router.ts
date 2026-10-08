@@ -14,4 +14,11 @@ router.post(
 	bloodRequestControllers.createBloodRequest,
 );
 
+// -----get all request
+router.get(
+	"/requests",
+	authCheck(),
+	bloodRequestControllers.getAllRequestController,
+);
+
 export const bloodRequestRouter = router;

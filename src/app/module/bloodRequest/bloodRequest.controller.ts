@@ -19,4 +19,25 @@ const createBloodRequest = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-export const bloodRequestControllers = { createBloodRequest };
+// -----get all request with filter
+const getAllRequestController = catchAsync(
+	async (req: Request, res: Response) => {
+		const requestList = await bloodRequestServices.getAllRequestServices(
+			req.query,
+			req.user?.userId as string,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "Blood request get Successfully",
+			data: requestList.data,
+			meta: requestList.meta,
+		});
+	},
+);
+
+export const bloodRequestControllers = {
+	createBloodRequest,
+	getAllRequestController,
+};

@@ -1,6 +1,5 @@
 import {
 	IDonorAvailability,
-	IDonorQuery,
 	IRegisterDonor,
 	IUpdateDonor,
 } from "./donor.interface";
@@ -13,6 +12,7 @@ import {
 	UserStatus,
 } from "../../../generated/prisma/enums";
 import { DonorWhereInput } from "../../../generated/prisma/models";
+import { IQuery } from "../../interfaces";
 
 // ------register donor services
 const registerDonorServices = async (
@@ -140,7 +140,7 @@ const changeAvailabilityServices = async (
 };
 
 // ------get all donor
-const getAllDonorServices = async (query: IDonorQuery) => {
+const getAllDonorServices = async (query: IQuery) => {
 	// -----limit
 	let limit = Number(query.limit) || 5;
 	if (limit < 1) limit = 1;
