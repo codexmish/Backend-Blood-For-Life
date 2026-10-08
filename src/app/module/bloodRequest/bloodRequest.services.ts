@@ -38,7 +38,7 @@ const createBloodRequest = async (
 };
 
 // ------get all request
-const getAllRequestServices = async (query: IQuery, userId: string) => {
+const getAllRequestServices = async (query: IQuery) => {
 	// -----limit
 	let limit = Number(query.limit) || 5;
 	if (limit < 1) limit = 1;
@@ -134,7 +134,20 @@ const getAllRequestServices = async (query: IQuery, userId: string) => {
 	};
 };
 
+// -----get single request
+const getSigleRequestService = async(requestid: string)=>{
+	// ----finding blood request
+	const bloodRequest = await prisma.bloodrequest.findUnique({
+		where: {
+			id: requestid
+		}
+	})
+
+	return bloodRequest
+} 
+
 export const bloodRequestServices = {
 	createBloodRequest,
 	getAllRequestServices,
+	getSigleRequestService
 };
