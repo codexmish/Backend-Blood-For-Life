@@ -138,18 +138,22 @@ const getAllRequestServices = async (query: IQuery) => {
 };
 
 // -----get single request
-const getSigleRequestService = async(requestid: string)=>{
+const getSigleRequestService = async (requestid: string) => {
 	// ----finding blood request
 	const bloodRequest = await prisma.bloodrequest.findUnique({
 		where: {
-			id: requestid
-		}
-	})
+			id: requestid,
+		},
+	});
 
-	return bloodRequest
-} 
+	if (!bloodRequest) {
+		throw new AppError(httpStatus.NOT_FOUND, "Blood request not found");
+	}
 
-// ------get all request
+	return bloodRequest;
+};
+
+// ------get all my  request
 const getAllMyRequestServices = async (query: IQuery, userId: string) => {
 	// -----limit
 	let limit = Number(query.limit) || 5;
@@ -204,19 +208,12 @@ const getAllMyRequestServices = async (query: IQuery, userId: string) => {
 		});
 	}
 
-	// -----setting date time as 12:00 am
-	const startOfTheDay = new Date();
-	startOfTheDay.setHours(0, 0, 0, 0);
-
 	// -----finding blood requests
 	const bloodRequest = await prisma.bloodrequest.findMany({
 		where: {
 			AND: andCondition,
-			needAt: {
-				gte: startOfTheDay,
-			},
 			status: BloodrequestStatus.OPEN,
-			requesterId: userId
+			requesterId: userId,
 		},
 		take: limit,
 		skip: skip,
@@ -229,11 +226,8 @@ const getAllMyRequestServices = async (query: IQuery, userId: string) => {
 	const totalBloodRequest = await prisma.bloodrequest.count({
 		where: {
 			AND: andCondition,
-			needAt: {
-				gte: startOfTheDay,
-			},
 			status: BloodrequestStatus.OPEN,
-			requesterId: userId
+			requesterId: userId,
 		},
 	});
 

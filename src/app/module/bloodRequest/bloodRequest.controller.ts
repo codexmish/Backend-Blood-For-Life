@@ -23,7 +23,7 @@ const createBloodRequest = catchAsync(async (req: Request, res: Response) => {
 const getAllRequestController = catchAsync(
 	async (req: Request, res: Response) => {
 		const requestList = await bloodRequestServices.getAllRequestServices(
-			req.query
+			req.query,
 		);
 
 		sendResponse(res, {
@@ -36,29 +36,28 @@ const getAllRequestController = catchAsync(
 	},
 );
 
-
-
-
 // -----get single request
-const getSingleRequestController = catchAsync(async(req: Request, res: Response)=>{
-	const bloodRequest = await bloodRequestServices.getSigleRequestService(req.params.id as string)
+const getSingleRequestController = catchAsync(
+	async (req: Request, res: Response) => {
+		const bloodRequest = await bloodRequestServices.getSigleRequestService(
+			req.params.id as string,
+		);
 
-	sendResponse(res, {
+		sendResponse(res, {
 			statusCode: httpStatus.OK,
 			success: true,
 			message: "Blood request get Successfully",
-			data: bloodRequest
+			data: bloodRequest,
 		});
-
-
-})
-
+	},
+);
 
 // -----get all request with filter
 const getAllMyRequestController = catchAsync(
 	async (req: Request, res: Response) => {
 		const requestList = await bloodRequestServices.getAllMyRequestServices(
-			req.query, req.user?.userId as string
+			req.query,
+			req.user?.userId as string,
 		);
 
 		sendResponse(res, {
