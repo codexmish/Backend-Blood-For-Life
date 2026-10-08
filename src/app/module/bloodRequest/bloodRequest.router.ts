@@ -2,7 +2,10 @@ import { Router } from "express";
 import { authCheck } from "../../middleWares/authCheck";
 import { bloodRequestControllers } from "./bloodRequest.controller";
 import { zodValidation } from "../../middleWares/zodValidation";
-import { createBloodRequestValidationSchema } from "./bloodRequest.validation";
+import {
+	createBloodRequestValidationSchema,
+	updateRequestStatusValidationSchema,
+} from "./bloodRequest.validation";
 
 const router = Router();
 
@@ -42,6 +45,14 @@ router.patch(
 	authCheck(),
 	zodValidation(createBloodRequestValidationSchema.partial()),
 	bloodRequestControllers.updateRequestController,
+);
+
+// -----update request status
+router.patch(
+	"/request/:id/status",
+	authCheck(),
+	zodValidation(updateRequestStatusValidationSchema),
+	bloodRequestControllers.updateRequestStatusController,
 );
 
 export const bloodRequestRouter = router;

@@ -1,5 +1,9 @@
 import z from "zod";
-import { BloodGroupList, Urgency } from "../../../generated/prisma/enums";
+import {
+	BloodGroupList,
+	BloodrequestStatus,
+	Urgency,
+} from "../../../generated/prisma/enums";
 
 export const createBloodRequestValidationSchema = z.object({
 	patientName: z
@@ -42,4 +46,12 @@ export const createBloodRequestValidationSchema = z.object({
 		.min(3, "Note must me 3 characters long")
 		.max(200, "Note max 200 characters long")
 		.optional(),
+});
+
+// -----update request status validation (OPEN not allowed, it is the default)
+export const updateRequestStatusValidationSchema = z.object({
+	status: z.enum(
+		[BloodrequestStatus.FULFILLED, BloodrequestStatus.CANCELLED],
+		"Status must be FULFILLED or CANCELLED",
+	),
 });

@@ -1,4 +1,8 @@
-import { BloodGroupList, Urgency } from "../../../generated/prisma/enums";
+import {
+	BloodGroupList,
+	BloodrequestStatus,
+	Urgency,
+} from "../../../generated/prisma/enums";
 
 export interface ICreateBloodRequest {
 	patientName: string;
@@ -10,4 +14,8 @@ export interface ICreateBloodRequest {
 	needAt: Date;
 	phoneNumber: string;
 	note?: string;
+}
+
+export interface IUpdateRequestStatus {
+	status: BloodrequestStatus;
 }

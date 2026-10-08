@@ -7,7 +7,10 @@ import { BloodrequestWhereInput } from "../../../generated/prisma/models";
 import { IQuery } from "../../interfaces";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
-import { ICreateBloodRequest } from "./bloodRequest.interface";
+import {
+	ICreateBloodRequest,
+	IUpdateRequestStatus,
+} from "./bloodRequest.interface";
 import httpStatus from "http-status";
 
 // -------create bloodRequest services
@@ -289,10 +292,57 @@ const updateRequestServices = async (
 	return updatedRequest;
 };
 
+// -----update blood request status
+const updateRequestStatusServices = async (
+	payload: IUpdateRequestStatus,
+	requestId: string,
+	userId: string,
+) => {
+	// ------checking request exist or not
+	const requestExist = await prisma.bloodrequest.findUnique({
+		where: {
+			id: requestId,
+		},
+	});
+
+	if (!requestExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "Blood request not found");
+	}
+
+	// ------only requester can change status
+	if (requestExist.requesterId !== userId) {
+		throw new AppError(
+			httpStatus.FORBIDDEN,
+			"You are not allowed to change this request status",
+		);
+	}
+
+	// ------fulfilled or cancelled request can't be changed again
+	if (requestExist.status !== BloodrequestStatus.OPEN) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			`This request is already ${requestExist.status.toLowerCase()}`,
+		);
+	}
+
+	// --------updating status
+	const updatedRequest = await prisma.bloodrequest.update({
+		where: {
+			id: requestExist.id,
+		},
+		data: {
+			status: payload.status,
+		},
+	});
+
+	return updatedRequest;
+};
+
 export const bloodRequestServices = {
 	createBloodRequest,
 	getAllRequestServices,
 	getSigleRequestService,
 	getAllMyRequestServices,
 	updateRequestServices,
+	updateRequestStatusServices,
 };

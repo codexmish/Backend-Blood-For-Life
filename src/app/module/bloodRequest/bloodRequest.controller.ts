@@ -89,10 +89,29 @@ const updateRequestController = catchAsync(
 	},
 );
 
+// -----update blood request status
+const updateRequestStatusController = catchAsync(
+	async (req: Request, res: Response) => {
+		const bloodRequest = await bloodRequestServices.updateRequestStatusServices(
+			req.body,
+			req.params.id as string,
+			req.user?.userId as string,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "Blood request status updated Successfully",
+			data: bloodRequest,
+		});
+	},
+);
+
 export const bloodRequestControllers = {
 	createBloodRequest,
 	getAllRequestController,
 	getSingleRequestController,
 	getAllMyRequestController,
 	updateRequestController,
+	updateRequestStatusController,
 };
