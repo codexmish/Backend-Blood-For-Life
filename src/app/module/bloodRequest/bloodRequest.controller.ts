@@ -53,8 +53,28 @@ const getSingleRequestController = catchAsync(async(req: Request, res: Response)
 
 })
 
+
+// -----get all request with filter
+const getAllMyRequestController = catchAsync(
+	async (req: Request, res: Response) => {
+		const requestList = await bloodRequestServices.getAllMyRequestServices(
+			req.query, req.user?.userId as string
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "Blood request get Successfully",
+			data: requestList.data,
+			meta: requestList.meta,
+		});
+	},
+);
+
 export const bloodRequestControllers = {
 	createBloodRequest,
 	getAllRequestController,
-	getSingleRequestController
+	getSingleRequestController,
+	getAllMyRequestController
+
 };

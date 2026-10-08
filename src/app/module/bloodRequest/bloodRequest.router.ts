@@ -29,4 +29,11 @@ router.get(
 	bloodRequestControllers.getSingleRequestController,
 );
 
+// -----get all my request
+router.get(
+	"/my-requests",
+	authCheck(),
+	bloodRequestControllers.getAllMyRequestController,
+);
+
 export const bloodRequestRouter = router;
