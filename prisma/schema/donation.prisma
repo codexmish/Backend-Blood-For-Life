@@ -1,0 +1,16 @@
+model Donation {
+  id         String         @id @default(ulid())
+  bloodGroup BloodGroupList
+  donatedAt  DateTime       @default(now())
+
+  donorId String
+  donor   Donor  @relation(fields: [donorId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  requestId String
+  request   Bloodrequest @relation(fields: [requestId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([requestId, donorId])
+}
