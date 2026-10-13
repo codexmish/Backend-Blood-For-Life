@@ -19,6 +19,9 @@ router.get(
 	donationControllers.getMyDonationsController,
 );
 
+// -----get public donations, no login (keep above "/:requestId")
+router.get("/public", donationControllers.getPublicDonationsController);
+
 // -----donate to blood request (keep "/my-..." and "/public" routes above this)
 router.post(
 	"/:requestId",

@@ -348,9 +348,66 @@ const getMyDonationsServices = async (query: IQuery, userId: string) => {
 	};
 };
 
+// -------get public donations services (only blood group, date, bags)
+const getPublicDonationsServices = async (query: IQuery) => {
+	// -----limit
+	let limit = Number(query.limit) || 10;
+	if (limit < 1) limit = 1;
+	if (limit > 50) limit = 50;
+	// -----page
+	let page = Number(query.page) || 1;
+	if (page < 1) page = 1;
+	const skip = (page - 1) * limit;
+
+	// -----grouping donations by request (one row = one request)
+	const groups = await prisma.donation.groupBy({
+		by: ["requestId", "bloodGroup"],
+		_count: {
+			_all: true,
+		},
+		_max: {
+			donatedAt: true,
+		},
+		orderBy: {
+			_max: {
+				donatedAt: "desc",
+			},
+		},
+		skip: skip,
+		take: limit,
+	});
+
+	// -----only public info, no request id
+	const donations = groups.map((item) => ({
+		bloodGroup: item.bloodGroup,
+		donatedAt: item._max.donatedAt,
+		bags: item._count._all,
+	}));
+
+	//    ---------total number (requests that have donation)
+	const total = await prisma.bloodrequest.count({
+		where: {
+			donations: {
+				some: {},
+			},
+		},
+	});
+
+	return {
+		data: donations,
+		meta: {
+			page: page,
+			limit: limit,
+			total: total,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
+};
+
 export const donationServices = {
 	donateToRequestServices,
 	leaveRequestServices,
 	getMyCommitmentsServices,
 	getMyDonationsServices,
+	getPublicDonationsServices,
 };
