@@ -12,4 +12,11 @@ router.post(
 	donationControllers.donateToRequestController,
 );
 
+// -----leave blood request
+router.delete(
+	"/:requestId",
+	authCheck(Role.DONOR),
+	donationControllers.leaveRequestController,
+);
+
 export const donationRouter = router;

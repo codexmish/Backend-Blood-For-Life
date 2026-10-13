@@ -138,4 +138,84 @@ const donateToRequestServices = async (requestId: string, userId: string) => {
 	return result;
 };
 
-export const donationServices = { donateToRequestServices };
+// -------leave blood request services
+const leaveRequestServices = async (requestId: string, userId: string) => {
+	const result = await prisma.$transaction(async (tx) => {
+		// ------checking donor exist or not
+		const donor = await tx.donor.findUnique({
+			where: {
+				userId,
+			},
+		});
+
+		if (!donor) {
+			throw new AppError(httpStatus.NOT_FOUND, "Donor profile not found");
+		}
+
+		// ------checking blood request exist or not
+		const bloodRequest = await tx.bloodrequest.findUnique({
+			where: {
+				id: requestId,
+			},
+			include: {
+				donors: {
+					select: {
+						id: true,
+					},
+				},
+			},
+		});
+
+		if (!bloodRequest) {
+			throw new AppError(httpStatus.NOT_FOUND, "Blood request not found");
+		}
+
+		// ------donor must be joined first
+		const joined = bloodRequest.donors.some((item) => item.id === donor.id);
+
+		if (!joined) {
+			throw new AppError(
+				httpStatus.BAD_REQUEST,
+				"You are not joined in this request",
+			);
+		}
+
+		// ------only open request can be left
+		if (bloodRequest.status !== BloodrequestStatus.OPEN) {
+			throw new AppError(
+				httpStatus.BAD_REQUEST,
+				"You can't leave a closed request",
+			);
+		}
+
+		// --------removing donor from the request
+		const updatedRequest = await tx.bloodrequest.update({
+			where: {
+				id: bloodRequest.id,
+			},
+			data: {
+				donors: {
+					disconnect: {
+						id: donor.id,
+					},
+				},
+			},
+			include: {
+				_count: {
+					select: {
+						donors: true,
+					},
+				},
+			},
+		});
+
+		return updatedRequest;
+	});
+
+	return result;
+};
+
+export const donationServices = {
+	donateToRequestServices,
+	leaveRequestServices,
+};

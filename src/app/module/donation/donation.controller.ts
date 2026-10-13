@@ -21,4 +21,24 @@ const donateToRequestController = catchAsync(
 	},
 );
 
-export const donationControllers = { donateToRequestController };
+// -------leave blood request controller
+const leaveRequestController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await donationServices.leaveRequestServices(
+			req.params.requestId as string,
+			req.user?.userId as string,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "You left this blood request Successfully",
+			data: result,
+		});
+	},
+);
+
+export const donationControllers = {
+	donateToRequestController,
+	leaveRequestController,
+};
