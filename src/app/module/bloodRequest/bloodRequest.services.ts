@@ -138,11 +138,18 @@ const getAllRequestServices = async (query: IQuery) => {
 };
 
 // -----get single request
-const getSigleRequestService = async (requestid: string) => {
+const getSigleRequestService = async (requestid: string, userId: string) => {
 	// ----finding blood request
 	const bloodRequest = await prisma.bloodrequest.findUnique({
 		where: {
 			id: requestid,
+		},
+		include: {
+			_count: {
+				select: {
+					donors: true,
+				},
+			},
 		},
 	});
 
@@ -150,7 +157,37 @@ const getSigleRequestService = async (requestid: string) => {
 		throw new AppError(httpStatus.NOT_FOUND, "Blood request not found");
 	}
 
-	return bloodRequest;
+	// ------others can see only how many donors joined
+	if (bloodRequest.requesterId !== userId) {
+		return bloodRequest;
+	}
+
+	// ------requester can see joined donors with phone
+	const donors = await prisma.donor.findMany({
+		where: {
+			bloodRequests: {
+				some: {
+					id: bloodRequest.id,
+				},
+			},
+		},
+		select: {
+			id: true,
+			user: {
+				select: {
+					name: true,
+					bloodGroup: true,
+					phone: true,
+					avater: true,
+				},
+			},
+		},
+	});
+
+	return {
+		...bloodRequest,
+		donors,
+	};
 };
 
 // ------get all my  request
@@ -319,14 +356,58 @@ const updateRequestStatusServices = async (
 		);
 	}
 
-	// --------updating status
-	const updatedRequest = await prisma.bloodrequest.update({
-		where: {
-			id: requestExist.id,
-		},
-		data: {
-			status: payload.status,
-		},
+	const updatedRequest = await prisma.$transaction(async (tx) => {
+		// ------when fulfilled, count donation for every joined donor
+		if (payload.status === BloodrequestStatus.FULFILLED) {
+			const donors = await tx.donor.findMany({
+				where: {
+					bloodRequests: {
+						some: {
+							id: requestExist.id,
+						},
+					},
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (donors.length) {
+				// -----creating donation records
+				await tx.donation.createMany({
+					data: donors.map((donor) => ({
+						donorId: donor.id,
+						requestId: requestExist.id,
+						bloodGroup: requestExist.bloodGroup,
+					})),
+				});
+
+				// -----updating donor history
+				await tx.donor.updateMany({
+					where: {
+						id: {
+							in: donors.map((donor) => donor.id),
+						},
+					},
+					data: {
+						lastDonationDate: new Date(),
+						totalDonations: {
+							increment: 1,
+						},
+					},
+				});
+			}
+		}
+
+		// --------updating status
+		return tx.bloodrequest.update({
+			where: {
+				id: requestExist.id,
+			},
+			data: {
+				status: payload.status,
+			},
+		});
 	});
 
 	return updatedRequest;

@@ -41,6 +41,7 @@ const getSingleRequestController = catchAsync(
 	async (req: Request, res: Response) => {
 		const bloodRequest = await bloodRequestServices.getSigleRequestService(
 			req.params.id as string,
+			req.user?.userId as string,
 		);
 
 		sendResponse(res, {
