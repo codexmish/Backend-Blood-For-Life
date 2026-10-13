@@ -91,10 +91,26 @@ const getPublicDonationsController = catchAsync(
 	},
 );
 
+// -------get all donations controller (admin)
+const getAllDonationsController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await donationServices.getAllDonationsServices(req.query);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "All donations get Successfully",
+			data: result.data,
+			meta: result.meta,
+		});
+	},
+);
+
 export const donationControllers = {
 	donateToRequestController,
 	leaveRequestController,
 	getMyCommitmentsController,
 	getMyDonationsController,
 	getPublicDonationsController,
+	getAllDonationsController,
 };

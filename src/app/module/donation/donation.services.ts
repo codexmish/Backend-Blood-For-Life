@@ -1,5 +1,11 @@
-import { BloodrequestStatus } from "../../../generated/prisma/enums";
-import { BloodrequestWhereInput } from "../../../generated/prisma/models";
+import {
+	BloodGroupList,
+	BloodrequestStatus,
+} from "../../../generated/prisma/enums";
+import {
+	BloodrequestWhereInput,
+	DonationWhereInput,
+} from "../../../generated/prisma/models";
 import { IQuery } from "../../interfaces";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
@@ -404,10 +410,137 @@ const getPublicDonationsServices = async (query: IQuery) => {
 	};
 };
 
+// -------get all donations services (admin, full info)
+const getAllDonationsServices = async (query: IQuery) => {
+	// -----limit
+	let limit = Number(query.limit) || 10;
+	if (limit < 1) limit = 1;
+	if (limit > 50) limit = 50;
+	// -----page
+	let page = Number(query.page) || 1;
+	if (page < 1) page = 1;
+	const skip = (page - 1) * limit;
+
+	// ------adding filter logic
+	const andCondition: DonationWhereInput[] = [];
+
+	// ---------blood group filter
+	if (query.bloodGroup) {
+		const bloodGroup = String(query.bloodGroup).toUpperCase();
+
+		if (!Object.values(BloodGroupList).includes(bloodGroup as BloodGroupList)) {
+			throw new AppError(httpStatus.BAD_REQUEST, "Invalid blood group");
+		}
+
+		andCondition.push({
+			bloodGroup: bloodGroup as BloodGroupList,
+		});
+	}
+
+	// ---------date range filter (YYYY-MM-DD)
+	if (query.from) {
+		const from = new Date(String(query.from));
+
+		if (Number.isNaN(from.getTime())) {
+			throw new AppError(httpStatus.BAD_REQUEST, "Invalid from date");
+		}
+
+		andCondition.push({
+			donatedAt: {
+				gte: from,
+			},
+		});
+	}
+
+	if (query.to) {
+		const to = new Date(String(query.to));
+
+		if (Number.isNaN(to.getTime())) {
+			throw new AppError(httpStatus.BAD_REQUEST, "Invalid to date");
+		}
+
+		// -----include the whole "to" day
+		to.setUTCHours(23, 59, 59, 999);
+
+		andCondition.push({
+			donatedAt: {
+				lte: to,
+			},
+		});
+	}
+
+	// -----finding donations (latest first)
+	const donations = await prisma.donation.findMany({
+		where: {
+			AND: andCondition,
+		},
+		take: limit,
+		skip: skip,
+		orderBy: {
+			donatedAt: "desc",
+		},
+		select: {
+			id: true,
+			bloodGroup: true,
+			donatedAt: true,
+			donor: {
+				select: {
+					id: true,
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							phone: true,
+							bloodGroup: true,
+						},
+					},
+				},
+			},
+			request: {
+				select: {
+					id: true,
+					patientName: true,
+					hospitalName: true,
+					address: true,
+					needAt: true,
+					phoneNumber: true,
+					requester: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							phone: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	//    ---------total number
+	const total = await prisma.donation.count({
+		where: {
+			AND: andCondition,
+		},
+	});
+
+	return {
+		data: donations,
+		meta: {
+			page: page,
+			limit: limit,
+			total: total,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
+};
+
 export const donationServices = {
 	donateToRequestServices,
 	leaveRequestServices,
 	getMyCommitmentsServices,
 	getMyDonationsServices,
 	getPublicDonationsServices,
+	getAllDonationsServices,
 };

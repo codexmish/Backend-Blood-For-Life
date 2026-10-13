@@ -22,6 +22,13 @@ router.get(
 // -----get public donations, no login (keep above "/:requestId")
 router.get("/public", donationControllers.getPublicDonationsController);
 
+// -----get all donations with full info (admin only)
+router.get(
+	"/",
+	authCheck(Role.ADMIN, Role.SUPER_ADMIN),
+	donationControllers.getAllDonationsController,
+);
+
 // -----donate to blood request (keep "/my-..." and "/public" routes above this)
 router.post(
 	"/:requestId",
