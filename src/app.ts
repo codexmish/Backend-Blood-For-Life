@@ -8,6 +8,7 @@ import { authRouter } from "./app/module/auth/auth.router";
 import { userRouter } from "./app/module/user/user.router";
 import { donorRouter } from "./app/module/donor/donor.router";
 import { bloodRequestRouter } from "./app/module/bloodRequest/bloodRequest.router";
+import { donationRouter } from "./app/module/donation/donation.router";
 
 const app: Application = express();
 
@@ -39,6 +40,7 @@ app.use(`${envConfig.BASE_URL}/auth`, authRouter);
 app.use(`${envConfig.BASE_URL}/user`, userRouter);
 app.use(`${envConfig.BASE_URL}/donor`, donorRouter);
 app.use(`${envConfig.BASE_URL}/blood-request`, bloodRequestRouter);
+app.use(`${envConfig.BASE_URL}/donation`, donationRouter);
 
 app.use(notFoundRoute);
 app.use(globalErrorHandaler);

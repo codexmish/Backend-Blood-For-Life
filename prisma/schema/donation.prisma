@@ -13,4 +13,5 @@ model Donation {
   updatedAt DateTime @updatedAt
 
   @@unique([requestId, donorId])
+  @@map("donation")
 }
