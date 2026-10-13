@@ -77,9 +77,7 @@ const getMyDonationsController = catchAsync(
 // -------get public donations controller
 const getPublicDonationsController = catchAsync(
 	async (req: Request, res: Response) => {
-		const result = await donationServices.getPublicDonationsServices(
-			req.query,
-		);
+		const result = await donationServices.getPublicDonationsServices(req.query);
 
 		sendResponse(res, {
 			statusCode: httpStatus.OK,
