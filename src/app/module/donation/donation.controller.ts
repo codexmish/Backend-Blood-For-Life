@@ -56,8 +56,27 @@ const getMyCommitmentsController = catchAsync(
 	},
 );
 
+// -------get my donations controller
+const getMyDonationsController = catchAsync(
+	async (req: Request, res: Response) => {
+		const result = await donationServices.getMyDonationsServices(
+			req.query,
+			req.user?.userId as string,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "My donations get Successfully",
+			data: result.data,
+			meta: result.meta,
+		});
+	},
+);
+
 export const donationControllers = {
 	donateToRequestController,
 	leaveRequestController,
 	getMyCommitmentsController,
+	getMyDonationsController,
 };

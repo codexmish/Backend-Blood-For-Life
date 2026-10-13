@@ -12,6 +12,13 @@ router.get(
 	donationControllers.getMyCommitmentsController,
 );
 
+// -----get my donations (keep above "/:requestId")
+router.get(
+	"/my-donations",
+	authCheck(Role.DONOR),
+	donationControllers.getMyDonationsController,
+);
+
 // -----donate to blood request (keep "/my-..." and "/public" routes above this)
 router.post(
 	"/:requestId",

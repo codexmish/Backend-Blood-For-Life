@@ -282,8 +282,75 @@ const getMyCommitmentsServices = async (query: IQuery, userId: string) => {
 	};
 };
 
+// -------get my donations services (donation history)
+const getMyDonationsServices = async (query: IQuery, userId: string) => {
+	// -----limit
+	let limit = Number(query.limit) || 5;
+	if (limit < 1) limit = 1;
+	if (limit > 50) limit = 50;
+	// -----page
+	let page = Number(query.page) || 1;
+	if (page < 1) page = 1;
+	const skip = (page - 1) * limit;
+
+	// ------checking donor exist or not
+	const donor = await prisma.donor.findUnique({
+		where: {
+			userId,
+		},
+	});
+
+	if (!donor) {
+		throw new AppError(httpStatus.NOT_FOUND, "Donor profile not found");
+	}
+
+	// -----finding my donations (latest first)
+	const donations = await prisma.donation.findMany({
+		where: {
+			donorId: donor.id,
+		},
+		take: limit,
+		skip: skip,
+		orderBy: {
+			donatedAt: "desc",
+		},
+		select: {
+			id: true,
+			bloodGroup: true,
+			donatedAt: true,
+			request: {
+				select: {
+					id: true,
+					patientName: true,
+					hospitalName: true,
+					address: true,
+					needAt: true,
+				},
+			},
+		},
+	});
+
+	//    ---------total number
+	const total = await prisma.donation.count({
+		where: {
+			donorId: donor.id,
+		},
+	});
+
+	return {
+		data: donations,
+		meta: {
+			page: page,
+			limit: limit,
+			total: total,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
+};
+
 export const donationServices = {
 	donateToRequestServices,
 	leaveRequestServices,
 	getMyCommitmentsServices,
+	getMyDonationsServices,
 };
