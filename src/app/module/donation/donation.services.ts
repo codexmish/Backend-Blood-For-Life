@@ -1,4 +1,6 @@
 import { BloodrequestStatus } from "../../../generated/prisma/enums";
+import { BloodrequestWhereInput } from "../../../generated/prisma/models";
+import { IQuery } from "../../interfaces";
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/appErro";
 import httpStatus from "http-status";
@@ -215,7 +217,73 @@ const leaveRequestServices = async (requestId: string, userId: string) => {
 	return result;
 };
 
+// -------get my commitments services (open requests i joined)
+const getMyCommitmentsServices = async (query: IQuery, userId: string) => {
+	// -----limit
+	let limit = Number(query.limit) || 5;
+	if (limit < 1) limit = 1;
+	if (limit > 50) limit = 50;
+	// -----page
+	let page = Number(query.page) || 1;
+	if (page < 1) page = 1;
+	const skip = (page - 1) * limit;
+
+	// ------checking donor exist or not
+	const donor = await prisma.donor.findUnique({
+		where: {
+			userId,
+		},
+	});
+
+	if (!donor) {
+		throw new AppError(httpStatus.NOT_FOUND, "Donor profile not found");
+	}
+
+	// -----open requests where i am a donor
+	const whereCondition: BloodrequestWhereInput = {
+		status: BloodrequestStatus.OPEN,
+		donors: {
+			some: {
+				id: donor.id,
+			},
+		},
+	};
+
+	// -----finding requests (nearest date first)
+	const commitments = await prisma.bloodrequest.findMany({
+		where: whereCondition,
+		take: limit,
+		skip: skip,
+		orderBy: {
+			needAt: "asc",
+		},
+		include: {
+			_count: {
+				select: {
+					donors: true,
+				},
+			},
+		},
+	});
+
+	//    ---------total number
+	const total = await prisma.bloodrequest.count({
+		where: whereCondition,
+	});
+
+	return {
+		data: commitments,
+		meta: {
+			page: page,
+			limit: limit,
+			total: total,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
+};
+
 export const donationServices = {
 	donateToRequestServices,
 	leaveRequestServices,
+	getMyCommitmentsServices,
 };
