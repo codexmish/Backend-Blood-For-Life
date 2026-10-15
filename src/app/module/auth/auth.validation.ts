@@ -51,3 +51,21 @@ export const resetPasswordSchema = z.object({
 		.min(8, "password must be 8 caracters long")
 		.max(32, "password max 32 caracters long"),
 });
+
+// -----resend otp validation
+export const resendOtpSchema = z.object({
+	email: z.email("Invalid email address").toLowerCase(),
+});
+
+// -----change password validation
+export const changePasswordSchema = z.object({
+	oldPassword: z
+		.string("Old password is required")
+		.min(8, "password must be 8 caracters long")
+		.max(32, "password max 32 caracters long"),
+
+	newPassword: z
+		.string("New password is required")
+		.min(8, "password must be 8 caracters long")
+		.max(32, "password max 32 caracters long"),
+});

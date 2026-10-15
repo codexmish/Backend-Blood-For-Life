@@ -1,6 +1,8 @@
 import {
+	IChangePassword,
 	IForgetPass,
 	IOtpVerify,
+	IResendOtp,
 	IResetPassword,
 	ISignIn,
 	ISignup,
@@ -464,7 +466,130 @@ const refreshTokenServices = async (token: string) => {
 };
 
 // -----resend otp services
-const resendOtpServices = async () => {};
+const resendOtpServices = async (payload: IResendOtp) => {
+	const { email } = payload;
+
+	// -----checking if user already verified
+	const userExist = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
+
+	if (userExist) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"User already exist with this email",
+		);
+	}
+
+	// -----signup data must be in redis (signup first)
+	const signupDataKey = `user-signup-data:${email}`;
+	const signupData = await redisClient.get(signupDataKey);
+
+	if (!signupData) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Signup session expired. Please signup again",
+		);
+	}
+
+	// -----one resend per minute
+	const cooldownKey = `resend-otp-cooldown:${email}`;
+	const cooldown = await redisClient.get(cooldownKey);
+
+	if (cooldown) {
+		throw new AppError(
+			httpStatus.TOO_MANY_REQUESTS,
+			"Please wait 1 minute before requesting a new OTP",
+		);
+	}
+
+	await redisClient.set(cooldownKey, "1", {
+		expiration: {
+			type: "EX",
+			value: 60,
+		},
+	});
+
+	// -----new otp generate
+	const otp = crypto.randomInt(100000, 1000000).toString();
+	const otpKey = `user-registration-otp:${email}`;
+
+	// ---new otp set on redis (old one is replaced)
+	await redisClient.set(otpKey, otp, {
+		expiration: {
+			type: "EX",
+			value: 5 * 60,
+		},
+	});
+
+	// ---giving signup data more time too
+	await redisClient.expire(signupDataKey, 6 * 60);
+
+	// ------sending mail
+	await mailSender({
+		email,
+		subject: "verify your email",
+		mailTemp: OTPMailTemp(otp, 5),
+	});
+
+	return;
+};
+
+// -----change password services
+const changePasswordServices = async (
+	payload: IChangePassword,
+	user: RequestUser,
+) => {
+	const { oldPassword, newPassword } = payload;
+
+	// -----checking user
+	const userExist = await prisma.user.findUnique({
+		where: {
+			id: user.userId,
+		},
+	});
+
+	if (!userExist) {
+		throw new AppError(httpStatus.NOT_FOUND, "user not found");
+	}
+
+	// -----checking old password
+	const isPasswordMatched = await bcrypt.compare(
+		oldPassword,
+		userExist.password,
+	);
+
+	if (!isPasswordMatched) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Old password is not correct");
+	}
+
+	// -----new password can't be same as old
+	if (oldPassword === newPassword) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"New password must be different from old password",
+		);
+	}
+
+	const hashedNewPassword = await bcrypt.hash(
+		newPassword,
+		Number(envConfig.SALT_ROUNDS),
+	);
+
+	// -----update user pass
+	await prisma.user.update({
+		where: {
+			id: userExist.id,
+		},
+		data: {
+			password: hashedNewPassword,
+		},
+	});
+
+	return;
+};
 
 export const authServices = {
 	signupServices,
@@ -474,4 +599,6 @@ export const authServices = {
 	resetPasswordServices,
 	userProfileServices,
 	refreshTokenServices,
+	resendOtpServices,
+	changePasswordServices,
 };

@@ -173,8 +173,30 @@ const logoutController = catchAsync(async (req: Request, res: Response) => {
 });
 
 // -----resend otp
-const resendOtpController = catchAsync(
-	async (req: Request, res: Response) => {},
+const resendOtpController = catchAsync(async (req: Request, res: Response) => {
+	await authServices.resendOtpServices(req.body);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "New OTP sent. Check your email",
+	});
+});
+
+// -----change password
+const changePasswordController = catchAsync(
+	async (req: Request, res: Response) => {
+		await authServices.changePasswordServices(
+			req.body,
+			req.user as RequestUser,
+		);
+
+		sendResponse(res, {
+			statusCode: httpStatus.OK,
+			success: true,
+			message: "Password changed successfully",
+		});
+	},
 );
 
 export const authControllers = {
@@ -187,4 +209,5 @@ export const authControllers = {
 	refreshTokenController,
 	logoutController,
 	resendOtpController,
+	changePasswordController,
 };

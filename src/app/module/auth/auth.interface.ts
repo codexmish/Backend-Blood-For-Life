@@ -26,3 +26,12 @@ export interface IResetPassword {
 export interface IForgetPass {
 	email: string;
 }
+
+export interface IResendOtp {
+	email: string;
+}
+
+export interface IChangePassword {
+	oldPassword: string;
+	newPassword: string;
+}

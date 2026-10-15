@@ -2,8 +2,10 @@ import { Router } from "express";
 import { authControllers } from "./auth.controller";
 import { zodValidation } from "../../middleWares/zodValidation";
 import {
+	changePasswordSchema,
 	forgetPasswordSchema,
 	otpVerifySchema,
+	resendOtpSchema,
 	resetPasswordSchema,
 	userSignInSchema,
 	userSignupSchema,
@@ -65,5 +67,22 @@ router.post(
 
 // ----logout router
 router.post("/logout", authControllers.logoutController);
+
+// -----resend otp router
+router.post(
+	"/resend-otp",
+	limiter(10 * 60 * 1000, 5, false),
+	zodValidation(resendOtpSchema),
+	authControllers.resendOtpController,
+);
+
+// -----change password router
+router.patch(
+	"/change-password",
+	limiter(10 * 60 * 1000, 5),
+	authCheck(),
+	zodValidation(changePasswordSchema),
+	authControllers.changePasswordController,
+);
 
 export const authRouter = router;
