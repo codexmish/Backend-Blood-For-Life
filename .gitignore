@@ -9,3 +9,4 @@ dist
 Claude outputs
 .windsurf/
 skills-lock.json
+.vercel
